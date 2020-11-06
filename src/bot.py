@@ -25,7 +25,7 @@ class MyBot(commands.Bot):
         print("Bot is Ready!")
 
     async def on_member_join(self, member):
-        await member.add_roles(self.AUTO_ROLE, reason="Testing", atomic=True)
+        await member.add_roles(self.AUTO_ROLE, reason="Auto Role", atomic=True)
         await self.SYSTEM_CHANNEL.send(
             f"Salutations {member.mention}, welcome to **Children of the Light**! If you wish to Join please follow the instructions in {self.APPLICATION_CHANNEL.mention}. "
             f"For any of your FA concerns please speak with Keegoz or LeftBehind.\n\nPraise be! For the light has shined upon you!")
