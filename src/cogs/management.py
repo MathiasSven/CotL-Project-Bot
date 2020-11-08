@@ -41,8 +41,9 @@ class Management(commands.Cog):
                 'roles': roles,
             })
         response = requests.post(f"{self.bot.API_URL}/members-bulk", json=data, headers={'x-api-key': self.bot.API_KEY})
-        if response.status_code == 200:
+        if response.status_code == 201:
             await ctx.send(f"Successfully fetched all members to web server")
+        print(f"Members bulk call: {response}")
 
     # @commands.command(aliases=['clear'])
     # async def purge(self, ctx, amount=None):
