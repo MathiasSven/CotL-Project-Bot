@@ -115,6 +115,23 @@ class MyBot(commands.Bot):
         response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
         print(f"User update call: {response}")
 
+    async def on_guild_role_create(self, role):
+        data = {
+            'id': role.id,
+            'name': role.name,
+            'position': role.position,
+            'colour': role.colour.value,
+        }
+        response = requests.put(f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY})
+        print(f"Role creation call: {response}")
+
+    async def on_guild_role_delete(self, role):
+        data = {
+            'id': role.id
+        }
+        response = requests.put(f"{self.API_URL}/role-remove", json=data, headers={'x-api-key': self.API_KEY})
+        print(f"Role deletion call: {response}")
+
     async def on_guild_role_update(self, before, after):
         data = {
             'id': after.id,
