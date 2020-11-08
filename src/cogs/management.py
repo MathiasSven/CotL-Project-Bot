@@ -30,6 +30,7 @@ class Management(commands.Cog):
                 roles.append({
                     'id': role.id,
                     'name': role.name,
+                    'position': role.position,
                     'colour': role.colour.value,
                 })
             data.append({

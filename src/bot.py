@@ -53,6 +53,7 @@ class MyBot(commands.Bot):
             roles.append({
                 'id': role.id,
                 'name': role.name,
+                'position': role.position,
                 'colour': role.colour.value,
             })
 
@@ -84,9 +85,9 @@ class MyBot(commands.Bot):
                 roles.append({
                     'id': role.id,
                     'name': role.name,
+                    'position': role.position,
                     'colour': role.colour.value,
                 })
-
             data = {
                 "id": after.id,
                 "nick": after.nick,
