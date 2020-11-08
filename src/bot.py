@@ -149,11 +149,13 @@ instance = MyBot()
 
 @instance.command()
 async def reload(ctx, extension=None):
+    await ctx.message.delete()
     if extension is None:
         await ctx.send(f"Must specify extension to reload")
         return None
     instance.unload_extension(f'cogs.{extension}')
     instance.load_extension(f'cogs.{extension}')
+    await ctx.send(f"Successfully reloaded {extension} ")
 
 
 for filename in os.listdir('./cogs'):

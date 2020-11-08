@@ -1,7 +1,7 @@
 import os
 
+import aiohttp
 import discord
-import requests
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 
@@ -29,7 +29,7 @@ class Management(commands.Cog):
 
     @get.command()
     async def members(self, ctx):
-        await ctx.channel.purge(limit=1)
+        await ctx.message.delete()
         members = self.bot.GUILD.members
         data = []
         for member in members:
@@ -49,14 +49,18 @@ class Management(commands.Cog):
                 'nick': member.nick,
                 'roles': roles,
             })
-        response = requests.post(f"{self.bot.API_URL}/members-bulk", json=data, headers={'x-api-key': self.bot.API_KEY})
-        if response.status_code == 201:
-            await ctx.send(f"Successfully fetched all members to web server")
-        print(f"Members bulk call: {response}")
+        async with aiohttp.request('POST', f"{self.bot.API_URL}/members-bulk", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+            print(f"Member join call: {await response.text()}")
+            if response.status == 201:
+                await ctx.send(f"Successfully fetched all members to web server.")
+            else:
+                await ctx.send(f"Post request was unsuccessful.")
+            print(f"Members bulk call: {response}")
 
     @commands.command(aliases=['clear'])
     @commands.check(check_if_admin)
     async def purge(self, ctx, amount=None):
+        await ctx.message.delete()
         if amount is None:
             await ctx.send(f"Must specify purge amount")
             return None
@@ -70,13 +74,13 @@ class Management(commands.Cog):
             await ctx.send(f"Argument must be greater then 0")
             return None
 
-        await ctx.channel.purge(limit=amount + 1)
+        await ctx.channel.purge(limit=amount)
 
     @purge.error
     @get.error
     async def purge_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            await ctx.channel.purge(limit=1)
+            await ctx.message.delete()
             await ctx.send("You do not have permission to execute this command.")
 
 
