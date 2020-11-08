@@ -16,6 +16,7 @@ class MyBot(commands.Bot):
         self.GUILD_ID = int(os.getenv('GUILD_ID'))
         self.AUTO_ROLE_ID = int(os.getenv('AUTO_ROLE_ID'))
         self.APPLICATION_CHANNEL_ID = int(os.getenv('APPLICATION_CHANNEL_ID'))
+        self.ADMIN_ID = int(os.getenv('ADMIN_ID'))
         self.API_KEY = os.getenv('API_KEY')
         self.API_URL = "http://127.0.0.1:8000/api"
 
@@ -39,7 +40,8 @@ class MyBot(commands.Bot):
         embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
 
         try:
-            embed.add_field(name="​", value=f"For any of your FA concerns please speak with {self.GUILD.get_member(211389941475835904).mention} or {self.GUILD.get_member(364254409388982272).mention}.",
+            embed.add_field(name="​",
+                            value=f"For any of your FA concerns please speak with {self.GUILD.get_member(211389941475835904).mention} or {self.GUILD.get_member(364254409388982272).mention}.",
                             inline=False)
         except AttributeError:
             pass
@@ -79,20 +81,25 @@ class MyBot(commands.Bot):
         if len(before.roles) == 1:
             return
         if before.roles != after.roles or before.nick != after.nick:
-
-            roles = []
-            for role in after.roles:
-                roles.append({
-                    'id': role.id,
-                    'name': role.name,
-                    'position': role.position,
-                    'colour': role.colour.value,
-                })
-            data = {
-                "id": after.id,
-                "nick": after.nick,
-                "roles": roles,
-            }
+            if before.roles != after.roles:
+                roles = []
+                for role in after.roles:
+                    roles.append({
+                        'id': role.id,
+                        'name': role.name,
+                        'position': role.position,
+                        'colour': role.colour.value,
+                    })
+                data = {
+                    "id": after.id,
+                    "nick": after.nick,
+                    "roles": roles,
+                }
+            else:
+                data = {
+                    "id": after.id,
+                    "nick": after.nick,
+                }
             response = requests.put(f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY})
             print(f"Member update call: {response}")
         else:
@@ -107,6 +114,16 @@ class MyBot(commands.Bot):
         }
         response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
         print(f"User update call: {response}")
+
+    async def on_guild_role_update(self, before, after):
+        data = {
+            'id': after.id,
+            'name': after.name,
+            'position': after.position,
+            'colour': after.colour.value,
+        }
+        response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
+        print(f"Role update call: {response}")
 
     def run_bot(self):
         self.run(os.getenv('TOKEN'))
