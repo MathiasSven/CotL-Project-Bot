@@ -34,7 +34,7 @@ class Management(commands.Cog):
                 })
             data.append({
                 'id': member.id,
-                'username': member.name,
+                'name': member.name,
                 'discriminator': member.discriminator,
                 'avatar': member.avatar,
                 'nick': member.nick,

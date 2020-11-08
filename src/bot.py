@@ -58,7 +58,7 @@ class MyBot(commands.Bot):
 
         data = {
             'id': member.id,
-            'username': member.name,
+            'name': member.name,
             'discriminator': member.discriminator,
             'avatar': member.avatar,
             'nick': member.nick,
@@ -71,10 +71,12 @@ class MyBot(commands.Bot):
         data = {
             "id": member.id,
         }
-        response = requests.post(f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY})
+        response = requests.delete(f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY})
         print(response)
 
     async def on_member_update(self, before, after):
+        if len(before.roles) == 1:
+            return
         if before.roles != after.roles or before.nick != after.nick:
 
             roles = []
@@ -87,13 +89,13 @@ class MyBot(commands.Bot):
 
             data = {
                 "id": after.id,
-                'username': after.name,
+                'name': after.name,
                 'discriminator': after.discriminator,
                 "avatar": after.avatar,
                 "nick": after.nick,
                 "roles": roles,
             }
-            response = requests.post(f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY})
+            response = requests.put(f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY})
             print(response)
         else:
             pass
