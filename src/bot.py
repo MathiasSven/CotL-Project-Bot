@@ -35,7 +35,7 @@ class MyBot(commands.Bot):
         mentions = discord.AllowedMentions(users=True)
 
         embed = discord.Embed(title="Children of the Light", colour=discord.Colour(0xa57d48), url="https://politicsandwar.com/alliance/id=7452",
-                              description=f"**Salutations** {member.mention},\nWelcome to Children of the Light! If you wish to Join please follow the instructions in #applications")
+                              description=f"**Salutations** {member.mention},\nWelcome to Children of the Light! If you wish to Join please follow the instructions in {self.APPLICATION_CHANNEL.mention}")
 
         embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
 
