@@ -34,7 +34,7 @@ class MyBot(commands.Bot):
         mentions = discord.AllowedMentions(users=True)
 
         embed = discord.Embed(title="Children of the Light", colour=discord.Colour(0xa57d48), url="https://politicsandwar.com/alliance/id=7452",
-                              description=f"**Salutations** {member.mention}**!**,\nWelcome to Children of the Light! If you wish to Join please follow the instructions in #applications")
+                              description=f"**Salutations** {member.mention},\nWelcome to Children of the Light! If you wish to Join please follow the instructions in #applications")
 
         embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
 
@@ -65,14 +65,14 @@ class MyBot(commands.Bot):
             'roles': roles,
         }
         response = requests.post(f"{self.API_URL}/member-join", json=data, headers={'x-api-key': self.API_KEY})
-        print(response)
+        print(f"Member join call: {response}")
 
     async def on_member_remove(self, member):
         data = {
             "id": member.id,
         }
-        response = requests.delete(f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY})
-        print(response)
+        response = requests.put(f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY})
+        print(f"Member remove call: {response}")
 
     async def on_member_update(self, before, after):
         if len(before.roles) == 1:
@@ -89,19 +89,23 @@ class MyBot(commands.Bot):
 
             data = {
                 "id": after.id,
-                'name': after.name,
-                'discriminator': after.discriminator,
-                "avatar": after.avatar,
                 "nick": after.nick,
                 "roles": roles,
             }
             response = requests.put(f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY})
-            print(response)
+            print(f"Member update call: {response}")
         else:
             pass
 
     async def on_user_update(self, before, after):
-        pass
+        data = {
+            "id": after.id,
+            'name': after.name,
+            'discriminator': after.discriminator,
+            "avatar": after.avatar,
+        }
+        response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
+        print(f"User update call: {response}")
 
     def run_bot(self):
         self.run(os.getenv('TOKEN'))
