@@ -1,10 +1,8 @@
-import datetime
 import os
-from typing import Union
+import aiohttp
 
 import discord
 from discord.ext import commands, tasks
-import requests
 
 intents = discord.Intents.all()
 
@@ -67,15 +65,15 @@ class MyBot(commands.Bot):
             'nick': member.nick,
             'roles': roles,
         }
-        response = requests.post(f"{self.API_URL}/member-join", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"Member join call: {response}")
+        async with aiohttp.request('POST', f"{self.API_URL}/member-join", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"Member join call: {await response.text()}")
 
     async def on_member_remove(self, member):
         data = {
             "id": member.id,
         }
-        response = requests.put(f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"Member remove call: {response}")
+        async with aiohttp.request('PUT', f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"Member remove call: {await response.text()}")
 
     async def on_member_update(self, before, after):
         if len(before.roles) == 1:
@@ -100,8 +98,8 @@ class MyBot(commands.Bot):
                     "id": after.id,
                     "nick": after.nick,
                 }
-            response = requests.put(f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY})
-            print(f"Member update call: {response}")
+            async with aiohttp.request('PUT', f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
+                print(f"Member update call: {await response.text()}")
         else:
             pass
 
@@ -112,8 +110,8 @@ class MyBot(commands.Bot):
             'discriminator': after.discriminator,
             "avatar": after.avatar,
         }
-        response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"User update call: {response}")
+        async with aiohttp.request('PUT', f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"User update call: {await response.text()}")
 
     async def on_guild_role_create(self, role):
         data = {
@@ -122,15 +120,15 @@ class MyBot(commands.Bot):
             'position': role.position,
             'colour': role.colour.value,
         }
-        response = requests.post(f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"Role creation call: {response}")
+        async with aiohttp.request('POST', f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"Role creation call: {await response.text()}")
 
     async def on_guild_role_delete(self, role):
         data = {
             'id': role.id
         }
-        response = requests.put(f"{self.API_URL}/role-remove", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"Role deletion call: {response}")
+        async with aiohttp.request('PUT', f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"Role deletion call: {await response.text()}")
 
     async def on_guild_role_update(self, before, after):
         data = {
@@ -139,8 +137,8 @@ class MyBot(commands.Bot):
             'position': after.position,
             'colour': after.colour.value,
         }
-        response = requests.put(f"{self.API_URL}/role-update", json=data, headers={'x-api-key': self.API_KEY})
-        print(f"Role update call: {response}")
+        async with aiohttp.request('PUT', f"{self.API_URL}/role-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
+            print(f"Role update call: {await response.text()}")
 
     def run_bot(self):
         self.run(os.getenv('TOKEN'))
