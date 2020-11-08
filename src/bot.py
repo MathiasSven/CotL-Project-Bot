@@ -122,7 +122,7 @@ class MyBot(commands.Bot):
             'position': after.position,
             'colour': after.colour.value,
         }
-        response = requests.put(f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY})
+        response = requests.put(f"{self.API_URL}/role-update", json=data, headers={'x-api-key': self.API_KEY})
         print(f"Role update call: {response}")
 
     def run_bot(self):
