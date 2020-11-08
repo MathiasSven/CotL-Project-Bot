@@ -122,7 +122,7 @@ class MyBot(commands.Bot):
             'position': role.position,
             'colour': role.colour.value,
         }
-        response = requests.put(f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY})
+        response = requests.post(f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY})
         print(f"Role creation call: {response}")
 
     async def on_guild_role_delete(self, role):
