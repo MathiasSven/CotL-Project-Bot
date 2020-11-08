@@ -73,6 +73,7 @@ class Management(commands.Cog):
         await ctx.channel.purge(limit=amount + 1)
 
     @purge.error
+    @get.error
     async def purge_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             await ctx.channel.purge(limit=1)
