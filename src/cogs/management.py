@@ -4,6 +4,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
+import validators
+import re
 
 
 def check_if_admin(ctx):
@@ -55,7 +57,7 @@ class Management(commands.Cog):
                 await ctx.send(f"Successfully fetched all members to web server.")
             else:
                 await ctx.send(f"Post request was unsuccessful.")
-            print(f"Members bulk call: {response}")
+            print(f"Members bulk call: {await response.text()}")
 
     @commands.command(aliases=['clear'])
     @commands.check(check_if_admin)
@@ -76,10 +78,36 @@ class Management(commands.Cog):
 
         await ctx.channel.purge(limit=amount)
 
+    @commands.command(aliases=['connect'])
+    @has_permissions(manage_roles=True)
+    async def link(self, ctx, user="f", nation_url="s"):
+        await ctx.message.delete()
+        regex = re.compile(r'^<@!\d*>$')
+        if regex.match(user) is not None:
+            if validators.url(nation_url):
+                data = {
+                    'id': user[3:-1],
+                    'nation_url': nation_url,
+                }
+                async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as resp:
+                    response = await resp.text()
+                    print(f"Link nation call: {response}")
+                    if resp.status == 201:
+                        mentions = discord.AllowedMentions(users=False)
+                        await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
+                    else:
+                        await ctx.send(f"Link request was unsuccessful.")
+                    print(f"Link nation call: {response}")
+            else:
+                await ctx.send("Invalid nation URL.")
+        else:
+            await ctx.send("Invalid user argument.")
+
+    @link.error
     @purge.error
     @get.error
     async def purge_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
+        if isinstance(error, commands.CheckFailure) or isinstance(error, commands.MissingPermissions):
             await ctx.message.delete()
             await ctx.send("You do not have permission to execute this command.")
 

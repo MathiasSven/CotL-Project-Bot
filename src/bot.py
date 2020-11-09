@@ -14,6 +14,7 @@ class MyBot(commands.Bot):
         self.GUILD_ID = int(os.getenv('GUILD_ID'))
         self.AUTO_ROLE_ID = int(os.getenv('AUTO_ROLE_ID'))
         self.APPLICATION_CHANNEL_ID = int(os.getenv('APPLICATION_CHANNEL_ID'))
+        self.APPLICATIONS_CATEGORY_ID = int(os.getenv('APPLICATIONS_CATEGORY_ID'))
         self.ADMIN_ID = int(os.getenv('ADMIN_ID'))
         self.API_KEY = os.getenv('API_KEY')
         self.API_URL = "http://127.0.0.1:8000/api"
