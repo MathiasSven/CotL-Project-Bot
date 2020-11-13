@@ -52,12 +52,14 @@ class Management(commands.Cog):
                 'roles': roles,
             })
         async with aiohttp.request('POST', f"{self.bot.API_URL}/members-bulk", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
-            print(f"Member join call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Member join call: {json_response}")
             if response.status == 201:
                 await ctx.send(f"Successfully fetched all members to web server.")
             else:
                 await ctx.send(f"Post request was unsuccessful.")
-            print(f"Members bulk call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Members bulk call: {json_response}")
 
     @commands.command(aliases=['clear'])
     @commands.check(check_if_admin)
@@ -89,15 +91,15 @@ class Management(commands.Cog):
                     'id': user[3:-1],
                     'nation_url': nation_url,
                 }
-                async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as resp:
-                    response = await resp.text()
-                    print(f"Link nation call: {response}")
-                    if resp.status == 201:
+                async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                    json_response = await response.text()
+                    print(f"Link nation call: {json_response}")
+                    if response.status == 201:
                         mentions = discord.AllowedMentions(users=False)
                         await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
                     else:
                         await ctx.send(f"Link request was unsuccessful.")
-                    print(f"Link nation call: {response}")
+                    print(f"Link nation call: {json_response}")
             else:
                 await ctx.send("Invalid nation URL.")
         else:

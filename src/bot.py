@@ -76,14 +76,16 @@ class MyBot(commands.Bot):
             'roles': roles,
         }
         async with aiohttp.request('POST', f"{self.API_URL}/member-join", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"Member join call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Member join call: {json_response}")
 
     async def on_member_remove(self, member):
         data = {
             "id": member.id,
         }
         async with aiohttp.request('PUT', f"{self.API_URL}/member-remove", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"Member remove call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Member remove call: {json_response}")
 
     async def on_member_update(self, before, after):
         if len(before.roles) == 1:
@@ -109,7 +111,8 @@ class MyBot(commands.Bot):
                     "nick": after.nick,
                 }
             async with aiohttp.request('PUT', f"{self.API_URL}/member-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
-                print(f"Member update call: {await response.text()}")
+                json_response = await response.text()
+                print(f"Member update call: {json_response}")
         else:
             pass
 
@@ -121,7 +124,8 @@ class MyBot(commands.Bot):
             "avatar": after.avatar,
         }
         async with aiohttp.request('PUT', f"{self.API_URL}/user-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"User update call: {await response.text()}")
+            json_response = await response.text()
+            print(f"User update call: {json_response}")
 
     async def on_guild_role_create(self, role):
         data = {
@@ -131,14 +135,16 @@ class MyBot(commands.Bot):
             'colour': role.colour.value,
         }
         async with aiohttp.request('POST', f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"Role creation call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Role creation call: {json_response}")
 
     async def on_guild_role_delete(self, role):
         data = {
             'id': role.id
         }
         async with aiohttp.request('PUT', f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"Role deletion call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Role deletion call: {json_response}")
 
     async def on_guild_role_update(self, before, after):
         data = {
@@ -148,7 +154,8 @@ class MyBot(commands.Bot):
             'colour': after.colour.value,
         }
         async with aiohttp.request('PUT', f"{self.API_URL}/role-update", json=data, headers={'x-api-key': self.API_KEY}) as response:
-            print(f"Role update call: {await response.text()}")
+            json_response = await response.text()
+            print(f"Role update call: {json_response}")
 
     def run_bot(self):
         self.run(config.get("server", "TOKEN"))
