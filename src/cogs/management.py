@@ -1,3 +1,6 @@
+import configparser
+import os
+
 import aiohttp
 import discord
 from discord.ext import commands
@@ -5,7 +8,10 @@ from discord.ext.commands import has_permissions
 import validators
 import re
 
-from src.bot import config
+directory = os.path.dirname(os.path.realpath(__file__))
+
+config = configparser.ConfigParser()
+config.read(f"{os.path.join(os.path.join(directory, os.pardir), os.pardir)}/config.ini")
 
 
 def check_if_admin(ctx):
