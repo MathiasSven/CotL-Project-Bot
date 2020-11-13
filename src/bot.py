@@ -1,8 +1,15 @@
+import asyncio
 import os
 import aiohttp
+import configparser
 
 import discord
 from discord.ext import commands, tasks
+
+directory = os.path.dirname(os.path.realpath(__file__))
+
+config = configparser.ConfigParser()
+config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
 
 intents = discord.Intents.all()
 
@@ -10,14 +17,15 @@ intents = discord.Intents.all()
 class MyBot(commands.Bot):
 
     def __init__(self, **options):
-        super().__init__(command_prefix=os.getenv('PREFIX'), intents=intents)
-        self.GUILD_ID = int(os.getenv('GUILD_ID'))
-        self.AUTO_ROLE_ID = int(os.getenv('AUTO_ROLE_ID'))
-        self.APPLICATION_CHANNEL_ID = int(os.getenv('APPLICATION_CHANNEL_ID'))
-        self.APPLICATIONS_CATEGORY_ID = int(os.getenv('APPLICATIONS_CATEGORY_ID'))
-        self.ADMIN_ID = int(os.getenv('ADMIN_ID'))
-        self.API_KEY = os.getenv('API_KEY')
-        self.API_URL = "http://127.0.0.1:8000/api"
+        super().__init__(command_prefix=config.get("server", "PREFIX"), intents=intents)
+        self.GUILD_ID = int(config.get("server", "GUILD_ID"))
+        self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
+        self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
+        self.APPLICATIONS_CATEGORY_ID = int(config.get("server", "APPLICATIONS_CATEGORY_ID"))
+        self.ADMIN_ID = int(config.get("server", "ADMIN_ID"))
+        self.API_KEY = config.get("server", "API_KEY")
+        self.API_URL = config.get("server", "API_URL")
+        self.COLOUR = int(config.get("server", "COLOUR"), 16)
 
     # noinspection PyAttributeOutsideInit,PyTypeChecker
     async def on_ready(self):
@@ -33,19 +41,20 @@ class MyBot(commands.Bot):
 
         mentions = discord.AllowedMentions(users=True)
 
-        embed = discord.Embed(title="Children of the Light", colour=discord.Colour(0xa57d48), url="https://politicsandwar.com/alliance/id=7452",
+        embed = discord.Embed(title="Children of the Light", colour=discord.Colour(self.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
                               description=f"**Salutations** {member.mention},\nWelcome to Children of the Light! If you wish to Join please follow the instructions in {self.APPLICATION_CHANNEL.mention}")
 
         embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
 
         try:
             embed.add_field(name="​",
-                            value=f"For any of your FA concerns please speak with {self.GUILD.get_member(211389941475835904).mention} or {self.GUILD.get_member(364254409388982272).mention}.",
+                            value=f"For any of your FA concerns please speak with {self.GUILD.get_member(364254409388982272).mention}.",
                             inline=False)
         except AttributeError:
             pass
         embed.add_field(name="​", value="**Praise be! For the light has shined upon you!**", inline=False)
 
+        await asyncio.sleep(1)
         welcome_embed = await self.SYSTEM_CHANNEL.send(content=f"{member.mention}", embed=embed, allowed_mentions=mentions)
         await welcome_embed.edit(content="")
 
@@ -142,7 +151,7 @@ class MyBot(commands.Bot):
             print(f"Role update call: {await response.text()}")
 
     def run_bot(self):
-        self.run(os.getenv('TOKEN'))
+        self.run(config.get("server", "TOKEN"))
 
 
 instance = MyBot()

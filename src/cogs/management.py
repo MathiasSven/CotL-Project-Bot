@@ -1,5 +1,3 @@
-import os
-
 import aiohttp
 import discord
 from discord.ext import commands
@@ -7,9 +5,11 @@ from discord.ext.commands import has_permissions
 import validators
 import re
 
+from src.bot import config
+
 
 def check_if_admin(ctx):
-    return ctx.message.author.id == int(os.getenv('ADMIN_ID'))
+    return ctx.message.author.id == int(config.get("server", "ADMIN_ID"))
 
 
 class Management(commands.Cog):
