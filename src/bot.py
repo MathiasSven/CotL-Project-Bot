@@ -175,7 +175,7 @@ async def reload(ctx, extension=None):
     await ctx.send(f"Successfully reloaded {extension} ")
 
 
-for filename in os.listdir('./cogs'):
+for filename in os.listdir(f'{directory}/cogs'):
     if filename.endswith('.py'):
         instance.load_extension(f'cogs.{filename[:-3]}')
 
