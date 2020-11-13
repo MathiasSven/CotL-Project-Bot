@@ -11,7 +11,7 @@ print("Original Repository: https://github.com/MathiasSven/CotL-Project-Bot")
 print(f"Version: {__version__}")
 print("License: GPL-3.0\n")
 
-copy(f"{folder}/config.ini.sample", "f{folder}/config.ini")
+copy(f"{folder}/config.ini.sample", f"{folder}/config.ini")
 
 # config = configparser.ConfigParser()
 # config.read("{folder}/config.ini")
