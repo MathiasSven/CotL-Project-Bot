@@ -1,7 +1,10 @@
 import asyncio
 import os
+import string
+import random
 import aiohttp
 import configparser
+from captcha.image import ImageCaptcha
 
 import discord
 from discord.ext import commands, tasks
@@ -21,10 +24,11 @@ class MyBot(commands.Bot):
         self.GUILD_ID = int(config.get("server", "GUILD_ID"))
         self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
         self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
-        self.APPLICATIONS_CATEGORY_ID = int(config.get("server", "APPLICATIONS_CATEGORY_ID"))
+        self.PUBLIC_CATEGORY_ID = int(config.get("server", "PUBLIC_CATEGORY_ID"))
         self.ADMIN_ID = int(config.get("server", "ADMIN_ID"))
         self.API_KEY = config.get("server", "API_KEY")
         self.API_URL = config.get("server", "API_URL")
+        self.GUILD_INVITE_URL = config.get("server", "GUILD_INVITE_URL")
         self.COLOUR = int(config.get("server", "COLOUR"), 16)
 
     # noinspection PyAttributeOutsideInit,PyTypeChecker
@@ -37,8 +41,52 @@ class MyBot(commands.Bot):
         print("Bot is Ready!")
 
     async def on_member_join(self, member):
-        await member.add_roles(self.AUTO_ROLE, reason="Auto Role", atomic=True)
+        verify_dm = await member.create_dm()
 
+        characters = string.ascii_uppercase + "123456789123456789123456789"
+        captcha_result = ''.join(random.choice(characters) for i in range(5))
+
+        image = ImageCaptcha()
+        data = image.generate(captcha_result)
+        image.write(captcha_result, f'captchas/{captcha_result}.png')
+        image_file = discord.File(f'captchas/{captcha_result}.png', filename=f'{captcha_result}.png')
+
+        verify_embed = discord.Embed(title="Welcome to the Children of the Light", colour=discord.Colour(self.COLOUR))
+        verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
+        verify_embed.add_field(name="**Why?**", value="This is to protect the server against\nmalicious raids using automated bots", inline=False)
+        verify_embed.add_field(name="\u200b", value="**Your Captcha:**", inline=False)
+        verify_embed.set_image(url=f'attachment://{captcha_result}.png')
+
+        await verify_dm.send(file=image_file, embed=verify_embed)
+
+        os.remove(f'captchas/{captcha_result}.png')
+
+        def check_captcha(m):
+            return m.channel == verify_dm and m.author == member
+
+        number_of_tries = 5
+
+        for i in range(number_of_tries):
+            try:
+                captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
+            except asyncio.TimeoutError:
+                await verify_dm.send(f'You took too long...\nPlease leave the server and rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                break
+            else:
+                if captcha_attempt.content == captcha_result:
+                    await verify_dm.send(f'You successfully answered the captcha! You should now have access to the server.')
+                    await self.verified_new_user(member)
+                    break
+                else:
+                    if i == 4:
+                        await verify_dm.send(
+                            f'You have **incorrectly** answered the captcha **{number_of_tries}** times.\nPlease leave the server and rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                    elif i == 3:
+                        await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempt left.')
+                    else:
+                        await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempts left.')
+
+    async def verified_new_user(self, member):
         mentions = discord.AllowedMentions(users=True)
 
         embed = discord.Embed(title="Children of the Light", colour=discord.Colour(self.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
@@ -58,6 +106,7 @@ class MyBot(commands.Bot):
         welcome_embed = await self.SYSTEM_CHANNEL.send(content=f"{member.mention}", embed=embed, allowed_mentions=mentions)
         await welcome_embed.edit(content="")
 
+        await member.add_roles(self.AUTO_ROLE, reason="Auto Role", atomic=True)
         roles = []
         for role in member.roles:
             roles.append({
