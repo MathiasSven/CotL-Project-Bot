@@ -48,8 +48,8 @@ class MyBot(commands.Bot):
 
         image = ImageCaptcha()
         data = image.generate(captcha_result)
-        image.write(captcha_result, f'captchas/{captcha_result}.png')
-        image_file = discord.File(f'captchas/{captcha_result}.png', filename=f'{captcha_result}.png')
+        image.write(captcha_result, f'{directory}/captchas/{captcha_result}.png')
+        image_file = discord.File(f'{directory}/captchas/{captcha_result}.png', filename=f'{captcha_result}.png')
 
         verify_embed = discord.Embed(title="Welcome to the Children of the Light", colour=discord.Colour(self.COLOUR))
         verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
@@ -59,7 +59,7 @@ class MyBot(commands.Bot):
 
         await verify_dm.send(file=image_file, embed=verify_embed)
 
-        os.remove(f'captchas/{captcha_result}.png')
+        os.remove(f'{directory}/captchas/{captcha_result}.png')
 
         def check_captcha(m):
             return m.channel == verify_dm and m.author == member
