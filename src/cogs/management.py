@@ -1,3 +1,4 @@
+import asyncio
 import configparser
 import os
 
@@ -70,6 +71,7 @@ class Management(commands.Cog):
     @commands.command(aliases=['clear'])
     @commands.check(check_if_admin)
     async def purge(self, ctx, amount=None):
+        await asyncio.sleep(0.5)
         await ctx.message.delete()
         if amount is None:
             await ctx.send(f"Must specify purge amount")
@@ -86,16 +88,20 @@ class Management(commands.Cog):
 
         await ctx.channel.purge(limit=amount)
 
+    # @purge.command(name='from')
+    # async def _from(self, ctx):
+    #     await ctx.send(f"Hey {ctx}")
+
     @commands.command(aliases=['connect'])
     @has_permissions(manage_roles=True)
-    async def link(self, ctx, user="f", nation_url="s"):
+    async def link(self, ctx, user="f", nation_link="s"):
         await ctx.message.delete()
         regex = re.compile(r'^<@!\d*>$')
         if regex.match(user) is not None:
-            if validators.url(nation_url):
+            if validators.url(nation_link):
                 data = {
                     'id': user[3:-1],
-                    'nation_url': nation_url,
+                    'nation_link': nation_link,
                 }
                 async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                     json_response = await response.text()
