@@ -26,12 +26,13 @@ class Bank(commands.Cog):
     async def startup(self):
         await self.bot.wait_until_ready()
         self.resource_emoji = {
-            'uranium': self.bot.get_emoji(762267445452079124),
-            'gasoline': self.bot.get_emoji(762267438024359936),
-            'munitions': self.bot.get_emoji(762267446454779944),
-            'steel': self.bot.get_emoji(762267439274524702),
-            'aluminum': self.bot.get_emoji(762267442382635008),
-            'food': self.bot.get_emoji(762267435201593364),
+            'uranium': self.bot.get_emoji(int(config.get("server", "uranium"))),
+            'gasoline': self.bot.get_emoji(int(config.get("server", "gasoline"))),
+            'munitions': self.bot.get_emoji(int(config.get("server", "munitions"))),
+            'steel': self.bot.get_emoji(int(config.get("server", "steel"))),
+            'aluminum': self.bot.get_emoji(int(config.get("server", "aluminum"))),
+            'food': self.bot.get_emoji(int(config.get("server", "food"))),
+            'money': self.bot.get_emoji(int(config.get("server", "money")))
         }
         self.GUILD = self.bot.get_guild(self.bot.GUILD_ID)
         self.BANK_REQUEST_CHANNEL = self.GUILD.get_channel(self.BANK_REQUEST_ID)
