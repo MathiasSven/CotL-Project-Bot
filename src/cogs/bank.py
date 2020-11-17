@@ -47,7 +47,7 @@ class Bank(commands.Cog):
 
     @commands.group()
     @commands.check(check_if_admin)
-    async def add_emoji(self):
+    async def add_emoji(self, ctx):
         await self.GUILD.create_custom_emoji(name='uranium', image=f"{directory}/emoji/uranium.png", reason="Aid Requests")
         await self.GUILD.create_custom_emoji(name='gasoline', image=f"{directory}/emoji/gasoline.png", reason="Aid Requests")
         await self.GUILD.create_custom_emoji(name='munitions', image=f"{directory}/emoji/munitions.png", reason="Aid Requests")
