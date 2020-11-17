@@ -48,12 +48,18 @@ class Bank(commands.Cog):
     @commands.group()
     @commands.check(check_if_admin)
     async def add_emoji(self, ctx):
-        await self.GUILD.create_custom_emoji(name='uranium', image=f"{directory}/emoji/uranium.png", reason="Aid Requests")
-        await self.GUILD.create_custom_emoji(name='gasoline', image=f"{directory}/emoji/gasoline.png", reason="Aid Requests")
-        await self.GUILD.create_custom_emoji(name='munitions', image=f"{directory}/emoji/munitions.png", reason="Aid Requests")
-        await self.GUILD.create_custom_emoji(name='steel', image=f"{directory}/emoji/steel.png", reason="Aid Requests")
-        await self.GUILD.create_custom_emoji(name='aluminum', image=f"{directory}/emoji/aluminum.png", reason="Aid Requests")
-        await self.GUILD.create_custom_emoji(name='food', image=f"{directory}/emoji/food.png", reason="Aid Requests")
+        with open(f"{directory}/emoji/uranium.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='uranium', image=img.read(), reason="Aid Requests")
+        with open(f"{directory}/emoji/gasoline.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='gasoline', image=img.read(), reason="Aid Requests")
+        with open(f"{directory}/emoji/munitions.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='munitions', image=img.read(), reason="Aid Requests")
+        with open(f"{directory}/emoji/steel.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='steel', image=img.read(), reason="Aid Requests")
+        with open(f"{directory}/emoji/aluminum.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='aluminum', image=img.read(), reason="Aid Requests")
+        with open(f"{directory}/emoji/food.png", "rb") as img:
+            await self.GUILD.create_custom_emoji(name='food', image=img.read(), reason="Aid Requests")
 
     @commands.group()
     async def aid(self, ctx):
