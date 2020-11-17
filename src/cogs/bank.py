@@ -14,6 +14,10 @@ config = configparser.ConfigParser()
 config.read(f"{os.path.join(os.path.join(directory, os.pardir), os.pardir)}/config.ini")
 
 
+def check_if_admin(ctx):
+    return ctx.message.author.id == int(config.get("server", "ADMIN_ID"))
+
+
 class Bank(commands.Cog):
 
     def __init__(self, bot):
@@ -32,7 +36,7 @@ class Bank(commands.Cog):
             'steel': self.bot.get_emoji(int(config.get("server", "steel"))),
             'aluminum': self.bot.get_emoji(int(config.get("server", "aluminum"))),
             'food': self.bot.get_emoji(int(config.get("server", "food"))),
-            'money': self.bot.get_emoji(int(config.get("server", "money")))
+            'money': EMOJI[':moneybag:']
         }
         self.GUILD = self.bot.get_guild(self.bot.GUILD_ID)
         self.BANK_REQUEST_CHANNEL = self.GUILD.get_channel(self.BANK_REQUEST_ID)
@@ -40,6 +44,16 @@ class Bank(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Bank Cog is loaded')
+
+    @commands.group()
+    @commands.check(check_if_admin)
+    async def add_emoji(self):
+        await self.GUILD.create_custom_emoji(name='uranium', image=f"{directory}/emoji/uranium.png", reason="Aid Requests")
+        await self.GUILD.create_custom_emoji(name='gasoline', image=f"{directory}/emoji/gasoline.png", reason="Aid Requests")
+        await self.GUILD.create_custom_emoji(name='munitions', image=f"{directory}/emoji/munitions.png", reason="Aid Requests")
+        await self.GUILD.create_custom_emoji(name='steel', image=f"{directory}/emoji/steel.png", reason="Aid Requests")
+        await self.GUILD.create_custom_emoji(name='aluminum', image=f"{directory}/emoji/aluminum.png", reason="Aid Requests")
+        await self.GUILD.create_custom_emoji(name='food', image=f"{directory}/emoji/food.png", reason="Aid Requests")
 
     @commands.group()
     async def aid(self, ctx):

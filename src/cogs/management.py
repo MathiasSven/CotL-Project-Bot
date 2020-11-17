@@ -23,10 +23,9 @@ class Management(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Events
-    # @commands.Cog.listener()
-    # async def on_ready(self):
-    #     print("Bot is ready")
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print('Management Cog is loaded')
 
     # Commands
     @commands.group(aliases=['fetch'])
