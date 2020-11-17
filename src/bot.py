@@ -7,7 +7,7 @@ import configparser
 from captcha.image import ImageCaptcha
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -17,6 +17,7 @@ config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
 intents = discord.Intents.all()
 
 
+# noinspection PyUnusedLocal
 class MyBot(commands.Bot):
 
     def __init__(self, **options):
@@ -37,6 +38,7 @@ class MyBot(commands.Bot):
         self.AUTO_ROLE = self.GUILD.get_role(self.AUTO_ROLE_ID)
         self.SYSTEM_CHANNEL = self.GUILD.system_channel
         self.APPLICATION_CHANNEL = self.GUILD.get_channel(self.APPLICATION_CHANNEL_ID)
+        # self.PUBLIC_CATEGORY = self.GUILD.get_channel(self.PUBLIC_CATEGORY_ID)
 
         print("Bot is Ready!")
 
@@ -86,6 +88,7 @@ class MyBot(commands.Bot):
                     else:
                         await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempts left.')
 
+    # New Method
     async def verified_new_user(self, member):
         mentions = discord.AllowedMentions(users=True)
 
