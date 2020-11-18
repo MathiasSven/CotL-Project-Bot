@@ -82,11 +82,12 @@ class Bank(commands.Cog):
             return
         else:
             await message.clear_reactions()
+            field_num = len(aid_request_embed.fields)
             if str(payload.emoji) == EMOJI[':white_check_mark:']:
-                aid_request_embed.set_field_at(index=6, name=f"Status:", value=f"Fulfilled by {member.mention}")
+                aid_request_embed.set_field_at(index=field_num - 1, name=f"Status:", value=f"Fulfilled by {member.mention}")
                 await message.edit(embed=aid_request_embed)
             elif str(payload.emoji) == EMOJI[':x:']:
-                aid_request_embed.set_field_at(index=6, name=f"Status:", value=f"Rejected by {member.mention}")
+                aid_request_embed.set_field_at(index=field_num - 1, name=f"Status:", value=f"Denied by {member.mention}")
                 await message.edit(embed=aid_request_embed)
 
     @commands.group()
@@ -319,7 +320,8 @@ class Bank(commands.Cog):
             if message.author.id == self.bot.user.id:
                 try:
                     aid_request_embed = message.embeds.pop()
-                    if aid_request_embed.fields[6].value == "Unfulfilled":
+                    field_num = len(aid_request_embed.fields)
+                    if aid_request_embed.fields[field_num - 1].value == "Unfulfilled":
                         pending_requests.append([message.jump_url, message.content])
                 except IndexError:
                     pass
