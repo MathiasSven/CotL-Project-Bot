@@ -137,7 +137,7 @@ class Bank(commands.Cog):
 
         # noinspection PyShadowingNames
         def reaction_check(reaction, user):
-            return str(reaction.emoji) == EMOJI[':white_check_mark:']
+            return str(reaction.emoji) == EMOJI[':white_check_mark:'] and user == ctx.message.author
 
         # noinspection PyShadowingNames
         def check(msg):
