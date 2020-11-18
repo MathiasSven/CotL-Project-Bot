@@ -5,6 +5,7 @@ import os
 import aiohttp
 import discord
 from discord.ext import commands
+from discord.ext.commands import has_permissions
 from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 import validators
 
@@ -45,6 +46,49 @@ class Bank(commands.Cog):
     async def on_ready(self):
         print('Bank Cog is loaded')
 
+    # Aid Request reaction listener
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        try:
+            message = await self.BANK_REQUEST_CHANNEL.fetch_message(payload.message_id)
+        except discord.errors.NotFound:
+            return
+        member = payload.member
+        if member is None and message.author != self.bot.user:
+            return
+
+        if member == self.bot.user:
+            return
+
+        try:
+            aid_request_embed = message.embeds.pop()
+        except IndexError:
+            return
+        if "Request" not in aid_request_embed.title:
+            return
+
+        # Found Embed
+        if len(message.reactions) == 1:
+            await message.remove_reaction(payload.emoji, member)
+            return
+
+        if str(payload.emoji) != EMOJI[':white_check_mark:'] and str(payload.emoji) != EMOJI[':x:']:
+            await message.clear_reaction(payload.emoji)
+            return
+
+        await message.remove_reaction(payload.emoji, member)
+
+        if not member.guild_permissions.manage_roles:
+            return
+        else:
+            await message.clear_reactions()
+            if str(payload.emoji) == EMOJI[':white_check_mark:']:
+                aid_request_embed.set_field_at(index=6, name=f"Status:", value=f"Fulfilled by {member.mention}")
+                await message.edit(embed=aid_request_embed)
+            elif str(payload.emoji) == EMOJI[':x:']:
+                aid_request_embed.set_field_at(index=6, name=f"Status:", value=f"Rejected by {member.mention}")
+                await message.edit(embed=aid_request_embed)
+
     @commands.group()
     @commands.check(check_if_admin)
     async def add_emoji(self, ctx):
@@ -83,12 +127,13 @@ class Bank(commands.Cog):
 
         aid_embed = await aid_dm.send(embed=aid_embed)
 
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
+
         for _, emoji in self.resource_emoji.items():
             await aid_embed.add_reaction(emoji)
 
         await aid_embed.add_reaction(EMOJI[':white_check_mark:'])
-        await asyncio.sleep(0.5)
-        await ctx.message.delete()
 
         # noinspection PyShadowingNames
         def reaction_check(reaction, user):
@@ -119,6 +164,8 @@ class Bank(commands.Cog):
 
                 number_of_tries = 5
                 for x in range(number_of_tries):
+                    if x == 1:
+                        await aid_dm.send("Make sure to not include any commas")
                     if x == number_of_tries - 1:
                         await aid_dm.send("This is your last try!")
                     try:
@@ -132,6 +179,9 @@ class Bank(commands.Cog):
                             if amount < 0:
                                 await aid_dm.send("Haha, very funny. Now please type a positive number :)")
                                 del amount
+                            elif amount > 100000000000:
+                                await aid_dm.send("In your dreams, try again")
+                                del amount
                             else:
                                 break
                         except ValueError or TypeError:
@@ -140,7 +190,7 @@ class Bank(commands.Cog):
                                 return
                             elif message.content == "retry":
                                 # TODO
-                                await aid_dm.send("Aid Request Canceled. For now you will have to use the command again.")
+                                await aid_dm.send("Aid Request Canceled. For now you will have to use the command again")
                                 return
                             else:
                                 if x == number_of_tries - 1:
@@ -168,7 +218,7 @@ class Bank(commands.Cog):
                     return
                 elif message.content == "retry":
                     # TODO
-                    await aid_dm.send("Aid Request Canceled. For now you will have to use the command again.")
+                    await aid_dm.send("Aid Request Canceled. For now you will have to use the command again")
                     return
                 else:
                     reason = message.content
@@ -213,9 +263,13 @@ class Bank(commands.Cog):
             # noinspection PyUnboundLocalVariable
             async with aiohttp.request('GET', f"http://politicsandwar.com/api/nation/id={nation_id}&key={self.PNW_API_KEY}") as response:
                 json_response = await response.json()
-                nation_name = json_response['name']
-                leader_name = json_response['leadername']
-                flagurl = json_response['flagurl']
+                try:
+                    nation_name = json_response['name']
+                    leader_name = json_response['leadername']
+                    flagurl = json_response['flagurl']
+                except KeyError:
+                    await aid_dm.send("I was not able to fetch your nation data.\nRetry and make sure there is nothing but numbers after the `id=` parameter")
+                    return
 
             public_aid_embed = discord.Embed(title=f"Military Aid Request by {ctx.message.author.display_name}", colour=discord.Colour(self.bot.COLOUR))
             embed.set_thumbnail(url=flagurl)
@@ -228,7 +282,7 @@ class Bank(commands.Cog):
             withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ','%20')}"
             for res, amo in resource_amount:
                 public_aid_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
-                                           value=f"{amo}")
+                                           value=f"{int(amo):,}")
 
                 withdraw_link += f"&w_{res}={amo}"
 
@@ -238,12 +292,53 @@ class Bank(commands.Cog):
 
             public_aid_embed.add_field(name=f"Withdraw Link:",
                                        value=f"[Here]({withdraw_link})",
-                                       inline=False)
+                                       inline=True)
 
-            await self.BANK_REQUEST_CHANNEL.send(content=f"{ctx.message.author.mention}", embed=public_aid_embed)
+            public_aid_embed.add_field(name=f"Status:",
+                                       value=f"Unfulfilled",
+                                       inline=True)
+
+            public_aid_embed = await self.BANK_REQUEST_CHANNEL.send(content=f"{ctx.message.author.mention}", embed=public_aid_embed)
+            await public_aid_embed.add_reaction(EMOJI[':white_check_mark:'])
+            await public_aid_embed.add_reaction(EMOJI[':x:'])
 
             embed = discord.Embed(description="**Successfully created aid request**", colour=discord.Colour(self.bot.COLOUR))
             await aid_dm.send(embed=embed)
+
+    @commands.group()
+    @has_permissions(manage_roles=True)
+    async def requests(self, ctx):
+        if ctx.message.channel != self.BANK_REQUEST_CHANNEL:
+            await asyncio.sleep(0.5)
+            await ctx.message.delete()
+            await ctx.send(f"Please use {self.BANK_REQUEST_CHANNEL.mention}.")
+            return
+
+        pending_requests = []
+        async for message in ctx.channel.history(limit=200):
+            if message.author.id == self.bot.user.id:
+                try:
+                    aid_request_embed = message.embeds.pop()
+                    if aid_request_embed.fields[6].value == "Unfulfilled":
+                        pending_requests.append([message.jump_url, message.content])
+                except IndexError:
+                    pass
+
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
+
+        if len(pending_requests) == 0:
+            embed = discord.Embed(description="**There are no pending requests**", colour=discord.Colour(self.bot.COLOUR))
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord.Embed(title=f"Pending Requests:", description="Requests made 200 massages or more prior to this are ignored", colour=discord.Colour(self.bot.COLOUR))
+        _links = ""
+        for x, y in pending_requests:
+            _links += f"[Aid request for]({x}) {y}\n"
+        embed.add_field(name="Request Links:", value=f"{_links}", inline=False)
+        # embed.add_field(name="Number of pending requests:", value=f"{len(pending_requests)}", inline=False)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
