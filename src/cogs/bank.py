@@ -96,7 +96,7 @@ class Bank(commands.Cog):
 
         # noinspection PyShadowingNames
         def check(msg):
-            return msg.channel == aid_dm and msg.author != bot_user
+            return msg.channel == aid_dm and msg.author == ctx.message.author
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
@@ -129,7 +129,11 @@ class Bank(commands.Cog):
                     else:
                         try:
                             amount = int(message.content)
-                            break
+                            if amount < 0:
+                                await aid_dm.send("Haha, very funny. Now please type a positive number :)")
+                                del amount
+                            else:
+                                break
                         except ValueError or TypeError:
                             if message.content == "cancel":
                                 await aid_dm.send("Aid Request Canceled")
@@ -211,15 +215,17 @@ class Bank(commands.Cog):
                 json_response = await response.json()
                 nation_name = json_response['name']
                 leader_name = json_response['leadername']
+                flagurl = json_response['flagurl']
 
             public_aid_embed = discord.Embed(title=f"Military Aid Request by {ctx.message.author.display_name}", colour=discord.Colour(self.bot.COLOUR))
+            embed.set_thumbnail(url=flagurl)
 
             # noinspection PyUnboundLocalVariable
             public_aid_embed.add_field(name="Nation:",
                                        value=f"[{nation_name}]({nation_link})",
                                        inline=False)
 
-            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name}"
+            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ','%20')}"
             for res, amo in resource_amount:
                 public_aid_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
                                            value=f"{amo}")
