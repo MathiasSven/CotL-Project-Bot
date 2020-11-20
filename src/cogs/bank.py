@@ -1,6 +1,7 @@
 import asyncio
 import configparser
 import os
+import urllib.parse
 
 import aiohttp
 import discord
@@ -269,19 +270,21 @@ class Bank(commands.Cog):
                     nation_name = json_response['name']
                     leader_name = json_response['leadername']
                     flagurl = json_response['flagurl']
+                    print(flagurl)
                 except KeyError:
                     await aid_dm.send("I was not able to fetch your nation data.\nRetry and make sure there is nothing but numbers after the `id=` parameter")
                     return
 
             public_aid_embed = discord.Embed(title=f"Military Aid Request by {ctx.message.author.display_name}", colour=discord.Colour(self.bot.COLOUR))
-            embed.set_thumbnail(url=flagurl)
+            public_aid_embed.set_thumbnail(url=flagurl)
 
             # noinspection PyUnboundLocalVariable
             public_aid_embed.add_field(name="Nation:",
                                        value=f"[{nation_name}]({nation_link})",
                                        inline=False)
 
-            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ','%20')}"
+            reason = reason.replace("&", "and")
+            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ', '%20')}&w_note=War%20Aid:%20{urllib.parse.quote(reason, safe='')}"
             for res, amo in resource_amount:
                 public_aid_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
                                            value=f"{int(amo):,}")
