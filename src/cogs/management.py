@@ -130,9 +130,15 @@ class Management(commands.Cog):
         regex = re.compile(r'^<@!\d*>$')
         if regex.match(user) is not None:
             if validators.url(nation_link):
+                nation_id = nation_link.split("politicsandwar.com/nation/id=")
+                if nation_link != nation_id[0]:
+                    nation_id = nation_id[1]
+                else:
+                    await ctx.send("Invalid nation URL.")
+                    return
                 data = {
                     'id': user[3:-1],
-                    'nation_link': nation_link,
+                    'nation_id': nation_id,
                 }
                 async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                     json_response = await response.text()
