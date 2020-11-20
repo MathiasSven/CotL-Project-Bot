@@ -53,8 +53,9 @@ class Bank(commands.Cog):
             message = await self.BANK_REQUEST_CHANNEL.fetch_message(payload.message_id)
         except discord.errors.NotFound:
             return
-        member = payload.member
-        if member is None and message.author != self.bot.user:
+        else:
+            member = payload.member
+        if member is None or message.author != self.bot.user:
             return
 
         if member == self.bot.user:
@@ -64,7 +65,7 @@ class Bank(commands.Cog):
             aid_request_embed = message.embeds.pop()
         except IndexError:
             return
-        if "Request" not in aid_request_embed.title:
+        if "Request " not in aid_request_embed.title:
             return
 
         # Found Embed
