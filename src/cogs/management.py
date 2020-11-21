@@ -142,7 +142,6 @@ class Management(commands.Cog):
                 }
                 async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                     json_response = await response.text()
-                    print(f"Link nation call: {json_response}")
                     if response.status == 201:
                         mentions = discord.AllowedMentions(users=False)
                         await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
