@@ -347,7 +347,6 @@ class Bank(commands.Cog):
         for x, y in pending_requests:
             _links += f"[Aid request for]({x}) {y}\n"
         embed.add_field(name="Request Links:", value=f"{_links}", inline=False)
-        # embed.add_field(name="Number of pending requests:", value=f"{len(pending_requests)}", inline=False)
         await ctx.send(embed=embed)
 
 

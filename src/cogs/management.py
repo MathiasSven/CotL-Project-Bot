@@ -8,12 +8,16 @@ import re
 
 from src.models import PnWNation
 from src.utils.checks import check_if_admin
+from src.config import Config
+
+config = Config()
 
 
 class Management(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.PNW_API_KEY = config.get("server", "PNW_API_KEY")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -145,6 +149,34 @@ class Management(commands.Cog):
                 await ctx.send("Invalid nation URL.")
         else:
             await ctx.send("Invalid user argument.")
+
+    @commands.command(aliases=['checklinks'])
+    @has_permissions(manage_roles=True)
+    async def check_links(self, ctx):
+        pnw_nation_data = await PnWNation.all().values()
+        linked_nation_ids = []
+        for dict_ in pnw_nation_data:
+            linked_nation_ids.append(dict_['nation_id'])
+
+        async with aiohttp.request('GET', f"http://politicsandwar.com/api/alliance-members/?allianceid=7452&key={self.PNW_API_KEY}") as response:
+            json_response = await response.json()
+            try:
+                nations = json_response['nations']
+            except KeyError:
+                await ctx.send("Something went wrong.")
+                return
+
+        not_linked_nation_ids = []
+        for nation in nations:
+            if nation['nationid'] not in linked_nation_ids:
+                not_linked_nation_ids.append(nation['nationid'])
+
+        embed = discord.Embed(title=f"Nations which are not linked:", description="Nations that are part of the in-game alliance but are not linked", colour=discord.Colour(self.bot.COLOUR))
+        _links = ""
+        for nation_id in not_linked_nation_ids:
+            _links += f"https://politicsandwar.com/nation/id={nation_id}\n"
+        embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
+        await ctx.send(embed=embed)
 
     # @commands.command(aliases=['raid', 'panic'])
     # @has_permissions(manage_roles=True)
