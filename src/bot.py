@@ -4,6 +4,8 @@ import string
 import random
 import aiohttp
 import configparser
+
+import tortoise
 from captcha.image import ImageCaptcha
 
 import discord
@@ -31,6 +33,8 @@ class MyBot(commands.Bot):
         self.API_URL = config.get("server", "API_URL")
         self.GUILD_INVITE_URL = config.get("server", "GUILD_INVITE_URL")
         self.COLOUR = int(config.get("server", "COLOUR"), 16)
+
+        self.loop.run_until_complete(start_database())
 
     # noinspection PyAttributeOutsideInit,PyTypeChecker
     async def on_ready(self):
@@ -211,7 +215,14 @@ class MyBot(commands.Bot):
 
     def run_bot(self):
         self.run(config.get("server", "TOKEN"))
+        
 
+async def start_database():
+    await tortoise.Tortoise.init(
+        db_url="sqlite://db.sqlite3",
+        modules={"models": ["src.models"]}
+    )
+    await tortoise.Tortoise.generate_schemas()
 
 instance = MyBot()
 

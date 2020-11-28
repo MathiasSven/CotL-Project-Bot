@@ -1,6 +1,4 @@
 import asyncio
-import configparser
-import os
 import aiohttp
 import discord
 from discord.ext import commands
@@ -8,14 +6,8 @@ from discord.ext.commands import has_permissions
 import validators
 import re
 
-directory = os.path.dirname(os.path.realpath(__file__))
-
-config = configparser.ConfigParser()
-config.read(f"{os.path.join(os.path.join(directory, os.pardir), os.pardir)}/config.ini")
-
-
-def check_if_admin(ctx):
-    return ctx.message.author.id == int(config.get("server", "ADMIN_ID"))
+from src.models import PnWNation
+from src.utils.checks import check_if_admin
 
 
 class Management(commands.Cog):
@@ -144,6 +136,7 @@ class Management(commands.Cog):
                     json_response = await response.text()
                     if response.status == 201:
                         mentions = discord.AllowedMentions(users=False)
+                        await PnWNation.get_or_create(discord_user_id=user[3:-1], nation_id=nation_id)
                         await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
                     else:
                         await ctx.send(f"Link request was unsuccessful.")

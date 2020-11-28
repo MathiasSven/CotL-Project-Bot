@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 import os
 import urllib.parse
 
@@ -10,14 +9,12 @@ from discord.ext.commands import has_permissions
 from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 import validators
 
+from src.models import PnWNation
+from src.utils.checks import check_if_admin
+from src.config import Config
+
 directory = os.path.dirname(os.path.realpath(__file__))
-
-config = configparser.ConfigParser()
-config.read(f"{os.path.join(os.path.join(directory, os.pardir), os.pardir)}/config.ini")
-
-
-def check_if_admin(ctx):
-    return ctx.message.author.id == int(config.get("server", "ADMIN_ID"))
+config = Config()
 
 
 class Bank(commands.Cog):
@@ -110,6 +107,9 @@ class Bank(commands.Cog):
 
     @commands.group()
     async def aid(self, ctx):
+        """
+        Request military aid from Alliance
+        """
         if ctx.message.channel != self.BANK_REQUEST_CHANNEL:
             await asyncio.sleep(0.5)
             await ctx.message.delete()
@@ -226,42 +226,46 @@ class Bank(commands.Cog):
                 else:
                     reason = message.content
 
-            embed = discord.Embed(description="**Lastly, please link your nation**", colour=discord.Colour(self.bot.COLOUR))
-            await aid_dm.send(embed=embed)
-            for x in range(5):
-                if x == 4:
-                    await aid_dm.send("This is your last try!")
-                try:
-                    message = await self.bot.wait_for('message', timeout=60.0, check=check)
-                except asyncio.TimeoutError:
-                    await aid_dm.send('You took too long...')
-                    return
-                else:
-                    if validators.url(message.content):
-                        nation_link = message.content
-                        nation_id = nation_link.split("politicsandwar.com/nation/id=")
-                        if nation_link != nation_id[0]:
-                            nation_id = nation_id[1]
-                            break
-                        else:
-                            del nation_link
-                            del nation_id
-                            await aid_dm.send("Please type a valid link")
-                    elif message.content == "cancel":
-                        await aid_dm.send("Aid Request Canceled")
-                        return
-                    elif message.content == "retry":
-                        # TODO
-                        await aid_dm.send("Aid Request Canceled. For now you will have to use the command again.")
+            nation_object = await PnWNation.get(discord_user_id=ctx.message.author.id)
+            if nation_object is None:
+                embed = discord.Embed(description="**Lastly, please link your nation**", colour=discord.Colour(self.bot.COLOUR))
+                await aid_dm.send(embed=embed)
+                for x in range(5):
+                    if x == 4:
+                        await aid_dm.send("This is your last try!")
+                    try:
+                        message = await self.bot.wait_for('message', timeout=60.0, check=check)
+                    except asyncio.TimeoutError:
+                        await aid_dm.send('You took too long...')
                         return
                     else:
-                        await aid_dm.send("Please type a valid link")
+                        if validators.url(message.content):
+                            nation_link = message.content
+                            nation_id = nation_link.split("politicsandwar.com/nation/id=")
+                            if nation_link != nation_id[0]:
+                                nation_id = nation_id[1]
+                                break
+                            else:
+                                del nation_link
+                                del nation_id
+                                await aid_dm.send("Please type a valid link")
+                        elif message.content == "cancel":
+                            await aid_dm.send("Aid Request Canceled")
+                            return
+                        elif message.content == "retry":
+                            # TODO
+                            await aid_dm.send("Aid Request Canceled. For now you will have to use the command again.")
+                            return
+                        else:
+                            await aid_dm.send("Please type a valid link")
 
-            if "nation_link" in locals():
-                # noinspection PyUnboundLocalVariable
-                pass
+                if "nation_link" in locals():
+                    # noinspection PyUnboundLocalVariable
+                    pass
+                else:
+                    return
             else:
-                return
+                nation_id = nation_object.nation_id
 
             # noinspection PyUnboundLocalVariable
             async with aiohttp.request('GET', f"http://politicsandwar.com/api/nation/id={nation_id}&key={self.PNW_API_KEY}") as response:
@@ -284,7 +288,7 @@ class Bank(commands.Cog):
                                        inline=False)
 
             reason = reason.replace("&", "and")
-            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ', '%20')}&w_note=War%20Aid:%20{urllib.parse.quote(reason, safe='')}"
+            withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ', '%20')}&w_note=War%20Aid:%20{urllib.parse.quote(reason, safe='/')}"
             for res, amo in resource_amount:
                 public_aid_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
                                            value=f"{int(amo):,}")

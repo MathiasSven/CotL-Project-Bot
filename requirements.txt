@@ -4,3 +4,4 @@ validators>=0.18.1
 setuptools>=50.3.2
 captcha>=0.3
 emoji>=0.6.0
+tortoise-orm==0.16.18
