@@ -153,6 +153,8 @@ class Management(commands.Cog):
     @commands.command(aliases=['checklinks'])
     @has_permissions(manage_roles=True)
     async def check_links(self, ctx):
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
         pnw_nation_data = await PnWNation.all().values()
         linked_nation_ids = []
         for dict_ in pnw_nation_data:
@@ -171,11 +173,14 @@ class Management(commands.Cog):
             if nation['nationid'] not in linked_nation_ids:
                 not_linked_nation_ids.append(nation['nationid'])
 
-        embed = discord.Embed(title=f"Nations which are not linked:", description="Nations that are part of the in-game alliance but are not linked", colour=discord.Colour(self.bot.COLOUR))
-        _links = ""
-        for nation_id in not_linked_nation_ids:
-            _links += f"https://politicsandwar.com/nation/id={nation_id}\n"
-        embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
+        if not not_linked_nation_ids:
+            embed = discord.Embed(description="**There are no nations in the in-game alliance which aren't connected.**", colour=discord.Colour(self.bot.COLOUR))
+        else:
+            embed = discord.Embed(title=f"Nations which are not linked:", description="Nations that are part of the in-game alliance but are not linked", colour=discord.Colour(self.bot.COLOUR))
+            _links = ""
+            for nation_id in not_linked_nation_ids:
+                _links += f"https://politicsandwar.com/nation/id={nation_id}\n"
+            embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
 
     # @commands.command(aliases=['raid', 'panic'])
