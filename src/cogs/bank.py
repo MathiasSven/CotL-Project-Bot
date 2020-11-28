@@ -226,7 +226,7 @@ class Bank(commands.Cog):
                 else:
                     reason = message.content
 
-            nation_object = await PnWNation.get(discord_user_id=ctx.message.author.id)
+            nation_object = await PnWNation.get(pk=ctx.message.author.id)
             if nation_object is None:
                 embed = discord.Embed(description="**Lastly, please link your nation**", colour=discord.Colour(self.bot.COLOUR))
                 await aid_dm.send(embed=embed)
@@ -266,6 +266,7 @@ class Bank(commands.Cog):
                     return
             else:
                 nation_id = nation_object.nation_id
+                nation_link = f"https://politicsandwar.com/nation/id={nation_id}"
 
             # noinspection PyUnboundLocalVariable
             async with aiohttp.request('GET', f"http://politicsandwar.com/api/nation/id={nation_id}&key={self.PNW_API_KEY}") as response:
@@ -274,7 +275,6 @@ class Bank(commands.Cog):
                     nation_name = json_response['name']
                     leader_name = json_response['leadername']
                     flagurl = json_response['flagurl']
-                    print(flagurl)
                 except KeyError:
                     await aid_dm.send("I was not able to fetch your nation data.\nRetry and make sure there is nothing but numbers after the `id=` parameter")
                     return
