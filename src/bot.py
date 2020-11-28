@@ -233,13 +233,13 @@ async def reload(ctx, extension=None):
     if extension is None:
         await ctx.send(f"Must specify extension to reload")
         return None
-    instance.unload_extension(f'cogs.{extension}')
-    instance.load_extension(f'cogs.{extension}')
+    instance.unload_extension(f'src.cogs.{extension}')
+    instance.load_extension(f'src.cogs.{extension}')
     await ctx.send(f"Successfully reloaded {extension} ")
 
 
 for filename in os.listdir(f'{directory}/cogs'):
-    if filename.endswith('.py'):
-        instance.load_extension(f'cogs.{filename[:-3]}')
+    if filename.endswith('.py') and not filename.startswith('__init__'):
+        instance.load_extension(f'src.cogs.{filename[:-3]}')
 
 instance.run_bot()
