@@ -78,8 +78,9 @@ class MyBot(commands.Bot):
         for i in range(number_of_tries):
             try:
                 captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
-            except asyncio.TimeoutError:
-                await verify_dm.send(f'You took too long...\nPlease leave the server and rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+            except asyncio.exceptions.TimeoutError or asyncio.TimeoutError:
+                await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                await member.kick(reason="Took to long to answer the captcha.")
                 break
             else:
                 if captcha_attempt.content == captcha_result:
@@ -89,7 +90,8 @@ class MyBot(commands.Bot):
                 else:
                     if i == 4:
                         await verify_dm.send(
-                            f'You have **incorrectly** answered the captcha **{number_of_tries}** times.\nPlease leave the server and rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                            f'You have **incorrectly** answered the captcha **{number_of_tries}** times.\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                        await member.kick(reason="Failed the captcha multiple times.")
                     elif i == 3:
                         await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempt left.')
                     else:
@@ -114,7 +116,6 @@ class MyBot(commands.Bot):
 
         await asyncio.sleep(1)
         welcome_embed = await self.SYSTEM_CHANNEL.send(content=f"{member.mention}", embed=embed, allowed_mentions=mentions)
-        await welcome_embed.edit(content="")
 
         await member.add_roles(self.AUTO_ROLE, reason="Auto Role", atomic=True)
         roles = []
