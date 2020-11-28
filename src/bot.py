@@ -219,7 +219,7 @@ class MyBot(commands.Bot):
 
 async def start_database():
     await tortoise.Tortoise.init(
-        db_url="sqlite://db.sqlite3",
+        db_url=f"sqlite://{directory}\\files/db.sqlite3",
         modules={"models": ["src.models"]}
     )
     await tortoise.Tortoise.generate_schemas()

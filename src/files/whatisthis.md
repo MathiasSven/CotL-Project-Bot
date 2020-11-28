@@ -1,0 +1,1 @@
+Temporary folder for holding SQLite3 database files
