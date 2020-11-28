@@ -2,6 +2,7 @@ import asyncio
 import os
 import string
 import random
+import sys
 
 import aiohttp
 import configparser
@@ -13,6 +14,7 @@ import discord
 from discord.ext import commands
 
 directory = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(1, os.path.dirname(directory))
 
 config = configparser.ConfigParser()
 config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
