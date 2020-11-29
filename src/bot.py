@@ -50,6 +50,8 @@ class MyBot(commands.Bot):
         print("Bot is Ready!")
 
     async def on_member_join(self, member):
+        if member.bot:
+            return
         verify_dm = await member.create_dm()
 
         characters = string.ascii_uppercase + "123456789123456789123456789"
