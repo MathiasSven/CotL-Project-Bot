@@ -123,8 +123,10 @@ class Management(commands.Cog):
     async def link(self, ctx, user="f", nation_link="s"):
         await asyncio.sleep(0.5)
         await ctx.message.delete()
-        regex = re.compile(r'^<@!\d*>$')
+        regex = re.compile(r'^<@!?(?P<id>\d*)>$')
+        regex_match = regex.match(user)
         if regex.match(user) is not None:
+            user_id = regex_match.group("id")
             if validators.url(nation_link):
                 nation_id = nation_link.split("politicsandwar.com/nation/id=")
                 if nation_link != nation_id[0]:
@@ -133,14 +135,14 @@ class Management(commands.Cog):
                     await ctx.send("Invalid nation URL.")
                     return
                 data = {
-                    'id': user[3:-1],
+                    'id': user_id,
                     'nation_id': nation_id,
                 }
                 async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                     json_response = await response.text()
                     if response.status == 201:
                         mentions = discord.AllowedMentions(users=False)
-                        await PnWNation.get_or_create(discord_user_id=user[3:-1], nation_id=nation_id)
+                        await PnWNation.get_or_create(discord_user_id=user_id, nation_id=nation_id)
                         await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
                     else:
                         await ctx.send(f"Link request was unsuccessful.")

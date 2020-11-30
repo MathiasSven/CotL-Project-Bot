@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import urllib.parse
 
 import aiohttp
@@ -77,17 +78,32 @@ class Bank(commands.Cog):
 
         await message.remove_reaction(payload.emoji, member)
 
+        regex = re.compile(r'^<@!?(?P<id>\d*)>$')
+        request_author_id = int(regex.match(message.content).group("id"))
+        request_author = self.GUILD.get_member(request_author_id)
+
+        if member == request_author and str(payload.emoji) == EMOJI[':x:']:
+            await message.delete()
+
         if not member.guild_permissions.manage_roles:
             return
         else:
+            embed = discord.Embed(description=f"placeholder", colour=discord.Colour(self.bot.COLOUR))
+
             await message.clear_reactions()
             field_num = len(aid_request_embed.fields)
             if str(payload.emoji) == EMOJI[':white_check_mark:']:
                 aid_request_embed.set_field_at(index=field_num - 1, name=f"Status:", value=f"Fulfilled by {member.mention}")
                 await message.edit(embed=aid_request_embed)
+                embed.description = f"**Your [request]({message.jump_url}) was fulfilled by {member.mention}**"
+
             elif str(payload.emoji) == EMOJI[':x:']:
                 aid_request_embed.set_field_at(index=field_num - 1, name=f"Status:", value=f"Denied by {member.mention}")
                 await message.edit(embed=aid_request_embed)
+                embed.description = f"**Your [request]({message.jump_url}) was denied by {member.mention}**"
+
+            if member != request_author:
+                await request_author.send(embed=embed)
 
     @commands.group()
     @commands.check(check_if_admin)
@@ -226,7 +242,7 @@ class Bank(commands.Cog):
                 else:
                     reason = message.content
 
-            nation_object = await PnWNation.get(pk=ctx.message.author.id)
+            nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
             if nation_object is None:
                 embed = discord.Embed(description="**Lastly, please link your nation**", colour=discord.Colour(self.bot.COLOUR))
                 await aid_dm.send(embed=embed)
