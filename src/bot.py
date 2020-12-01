@@ -20,6 +20,7 @@ config = configparser.ConfigParser()
 config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
 
 intents = discord.Intents.all()
+activity = discord.Activity(name=f'over the children', type=discord.ActivityType.watching)
 
 
 # noinspection PyUnusedLocal
@@ -47,7 +48,14 @@ class MyBot(commands.Bot):
         self.APPLICATION_CHANNEL = self.GUILD.get_channel(self.APPLICATION_CHANNEL_ID)
         # self.PUBLIC_CATEGORY = self.GUILD.get_channel(self.PUBLIC_CATEGORY_ID)
 
+        await self.change_presence(activity=activity)
         print("Bot is Ready!")
+
+    async def on_command_error(self, context, exception):
+        if isinstance(exception, commands.errors.CommandError):
+            return
+        else:
+            await super(MyBot, self).on_command_error(context, exception)
 
     async def on_member_join(self, member):
         if member.bot:
