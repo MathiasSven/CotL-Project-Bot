@@ -35,6 +35,23 @@ class Utils(commands.Cog):
         else:
             await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}")
 
+    @commands.command(aliases=['du', 'au'])
+    async def associated_user(self, ctx, nation_id="f"):
+        # await asyncio.sleep(0.5)
+        # await ctx.message.delete()
+        try:
+            user = int(nation_id)
+        except ValueError:
+            await ctx.send("Invalid nation ID.")
+            return
+        user_pnw = await PnWNation.get_or_none(nation_id=nation_id)
+        if user_pnw is None:
+            await ctx.send("Nation with given ID has no associated user in the Database.")
+            return
+        else:
+            mentions = discord.AllowedMentions(users=False)
+            await ctx.send(f"<@{user_pnw.discord_user_id}>", allowed_mentions=mentions)
+
 
 def setup(bot):
     bot.add_cog(Utils(bot))
