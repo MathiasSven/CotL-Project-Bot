@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 import discord
 from discord.ext import commands
@@ -23,11 +24,17 @@ class Utils(commands.Cog):
     async def nation_link(self, ctx, user="f"):
         # await asyncio.sleep(0.5)
         # await ctx.message.delete()
-        try:
-            user = int(user)
-        except ValueError:
-            await ctx.send("Invalid user ID.")
-            return
+        regex = re.compile(r'^<@!?(?P<id>\d*)>$')
+        regex_match = regex.match(user)
+        if regex.match(user) is None:
+            try:
+                user = int(user)
+            except ValueError:
+                await ctx.send("Invalid user ID.")
+                return
+        else:
+            user = regex_match.group("id")
+
         user_pnw = await PnWNation.get_or_none(discord_user_id=user)
         if user_pnw is None:
             await ctx.send("User with the given ID is not in the Database.")
