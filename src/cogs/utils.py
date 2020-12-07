@@ -107,7 +107,6 @@ class Utils(commands.Cog):
                     processed_user_dict = await process_user(user)
                     if processed_user_dict is not None:
                         users_data[user] = processed_user_dict
-                        return users_data
                     else:
                         return
             else:
@@ -115,9 +114,10 @@ class Utils(commands.Cog):
                 processed_user_dict = await process_user(user)
                 if processed_user_dict is not None:
                     users_data[user] = processed_user_dict
-                    return users_data
                 else:
                     return
+
+        return users_data
 
     @commands.group(aliases=['warroom', 'wr'], invoke_without_command=True)
     async def war_room(self, ctx, *users):
