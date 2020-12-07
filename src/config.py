@@ -11,3 +11,7 @@ class Config:
 
     def get(self, section, key):
         return self.config.get(section, key)
+
+
+with open(f"{directory}/codenames", 'r') as codenames:
+    codenames = codenames.read().splitlines()

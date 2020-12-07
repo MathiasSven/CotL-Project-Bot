@@ -20,3 +20,6 @@ munitions =
 steel =
 aluminum =
 food =
+
+[utils]
+WAR_ROOMS_CATEGORY_ID =
