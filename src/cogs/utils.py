@@ -250,7 +250,7 @@ class Utils(commands.Cog):
             await ctx.send("This is not a war room.")
             return
 
-        if user not in war_room.topic:
+        if str(user) not in war_room.topic:
             await ctx.send("This member is not in this war room.")
             return
 
