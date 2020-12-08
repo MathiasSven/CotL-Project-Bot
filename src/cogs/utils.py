@@ -215,11 +215,16 @@ class Utils(commands.Cog):
         # name_regex = rf"(\| )?<\D\D?{ctx.author.id}>(?(1)| \|)"
         # name_result = re.sub(name_regex, "", war_room.name)
 
-        topic_regex = rf"(\| )?<\D\D?{ctx.author.id}>(?(1)| \|)"
-        if re.match(topic_regex, war_room.topic) is None:
+        regex = rf"(\| )?<\D\D?{str(ctx.author.id)}>(?(1)| \|)"
+        topic_regex = re.finditer(regex, war_room.topic, re.MULTILINE)
+        try:
+            match = topic_regex.__next__()
+        except StopIteration:
             await war_room.delete()
             return
-        topic_result = re.sub(topic_regex, "", war_room.topic)
+
+        tmp_sting = war_room.topic
+        topic_result = tmp_sting.replace(match.group(), "")
 
         await war_room.edit(topic=topic_result)
         await war_room.set_permissions(ctx.author, overwrite=None)
@@ -257,11 +262,16 @@ class Utils(commands.Cog):
         # name_regex = rf"(\| )?<\D\D?{ctx.author.id}>(?(1)| \|)"
         # name_result = re.sub(name_regex, "", war_room.name)
 
-        topic_regex = rf"(\| )?<\D\D?{user}>(?(1)| \|)"
-        if re.match(topic_regex, war_room.topic) is None:
+        regex = rf"(\| )?<\D\D?{user}>(?(1)| \|)"
+        topic_regex = re.finditer(regex, war_room.topic, re.MULTILINE)
+        try:
+            match = topic_regex.__next__()
+        except StopIteration:
             await war_room.delete()
             return
-        topic_result = re.sub(topic_regex, "", war_room.topic)
+
+        tmp_sting = war_room.topic
+        topic_result = tmp_sting.replace(match.group(), "")
 
         user_object = self.GUILD.get_member(int(user))
         await war_room.edit(topic=topic_result)
