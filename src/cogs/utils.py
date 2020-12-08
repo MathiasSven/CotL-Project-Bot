@@ -281,6 +281,25 @@ class Utils(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @war_room.group(name='rename')
+    async def rename_wr(self, ctx, *, new_name):
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
+
+        war_room = ctx.channel
+        if war_room.category_id != self.WAR_ROOMS_CATEGORY_ID:
+            await ctx.send("This is not a war room.")
+        else:
+            regex = re.compile(r'^[a-zA-Z\d -]*?[^a-zA-Z\d -]+[a-zA-Z\d -]*?$')
+            if regex.match(new_name) is not None:
+                await ctx.send("Only english alphabet characters and digits are allowed [a-z 0-9]")
+                return
+            else:
+                await war_room.edit(name=new_name)
+
+                embed = discord.Embed(description=f"**War room successfully renamed to {war_room.mention}**", colour=discord.Colour(self.bot.COLOUR))
+                await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Utils(bot))
