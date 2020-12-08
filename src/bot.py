@@ -62,7 +62,8 @@ class MyBot(commands.Bot):
             return
         verify_dm = await member.create_dm()
 
-        characters = string.ascii_uppercase + "123456789123456789123456789"
+        # characters = string.ascii_uppercase + "123456789123456789123456789"
+        characters = "0123456789"
         captcha_result = ''.join(random.choice(characters) for i in range(5))
 
         image = ImageCaptcha()
@@ -71,7 +72,8 @@ class MyBot(commands.Bot):
         image_file = discord.File(f'{directory}/captchas/{captcha_result}.png', filename=f'{captcha_result}.png')
 
         verify_embed = discord.Embed(title="Welcome to the Children of the Light", colour=discord.Colour(self.COLOUR))
-        verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
+        # verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
+        verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Numbers**\n\u200b", inline=False)
         verify_embed.add_field(name="**Why?**", value="This is to protect the server against\nmalicious raids using automated bots", inline=False)
         verify_embed.add_field(name="\u200b", value="**Your Captcha:**", inline=False)
         verify_embed.set_image(url=f'attachment://{captcha_result}.png')
