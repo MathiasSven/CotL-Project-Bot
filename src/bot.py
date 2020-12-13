@@ -12,6 +12,7 @@ from captcha.image import ImageCaptcha
 
 import discord
 from discord.ext import commands
+from src.utils import selfdelete
 
 directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(directory))
@@ -51,11 +52,20 @@ class MyBot(commands.Bot):
         await self.change_presence(activity=activity)
         print("Bot is Ready!")
 
-    # async def on_command_error(self, context, exception):
-    #     if isinstance(exception, commands.errors.CommandError):
-    #         return
-    #     else:
-    #         await super(MyBot, self).on_command_error(context, exception)
+    async def on_command_error(self, ctx, exception):
+        if isinstance(exception, commands.errors.CommandError):
+            try:
+                await selfdelete.self_delete(ctx)
+            except discord.NotFound:
+                pass
+            if isinstance(exception, commands.errors.MissingRole):
+                await ctx.send("You don't have the role necessary to run this command.")
+            elif isinstance(exception, commands.MissingPermissions):
+                await ctx.send("You do not have permission to execute this command.")
+            else:
+                raise exception
+        else:
+            await super(MyBot, self).on_command_error(ctx, exception)
 
     async def on_member_join(self, member):
         if member.bot:

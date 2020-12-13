@@ -185,17 +185,6 @@ class Management(commands.Cog):
             embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
 
-    # @commands.command(aliases=['raid', 'panic'])
-    # @has_permissions(manage_roles=True)
-    # async def freeze(self, ctx):
-    #     public_category = self.bot.APPLICATION_CHANNEL.category
-    #     public_text_channels = public_category.text_channels
-    #     for channel in public_text_channels:
-    #         can_send_messages = channel.overwrites_for(self.bot.AUTO_ROLE).send_messages
-    #         if can_send_messages
-    #     pass
-
-    @link.error
     @purge.error
     @_from.error
     @till.error
