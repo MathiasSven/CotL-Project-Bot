@@ -12,10 +12,10 @@ from captcha.image import ImageCaptcha
 
 import discord
 from discord.ext import commands
-from src.utils import selfdelete
 
 directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(directory))
+from src.utils import selfdelete
 
 config = configparser.ConfigParser()
 config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
