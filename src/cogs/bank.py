@@ -361,7 +361,7 @@ class Bank(commands.Cog):
         await self_delete(ctx)
         holdings_dm = await ctx.message.author.create_dm()
 
-    @commands.command(aliases=['deposits'])
+    @commands.command()
     async def loan(self, ctx):
         await self_delete(ctx)
         loan_dm = await ctx.message.author.create_dm()
