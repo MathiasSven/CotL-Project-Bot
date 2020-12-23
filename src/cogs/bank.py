@@ -1,5 +1,4 @@
 import asyncio
-import os
 import re
 import urllib.parse
 
@@ -11,10 +10,9 @@ from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 import validators
 
 from src.models import PnWNation
-from src.utils.checks import check_if_admin
 from src.config import Config
+from src.utils.selfdelete import self_delete
 
-directory = os.path.dirname(os.path.realpath(__file__))
 config = Config()
 
 
@@ -24,22 +22,24 @@ class Bank(commands.Cog):
         self.bot = bot
         self.PNW_API_KEY = config.get("server", "PNW_API_KEY")
         self.BANK_REQUEST_ID = int(config.get("server", "BANK_REQUEST_ID"))
+        self.BANK_LOGS_ID = int(config.get("server", "BANK_LOGS_ID"))
         bot.loop.create_task(self.startup())
 
     # noinspection PyAttributeOutsideInit
     async def startup(self):
         await self.bot.wait_until_ready()
         self.resource_emoji = {
-            'uranium': self.bot.get_emoji(int(config.get("server", "uranium"))),
-            'gasoline': self.bot.get_emoji(int(config.get("server", "gasoline"))),
-            'munitions': self.bot.get_emoji(int(config.get("server", "munitions"))),
-            'steel': self.bot.get_emoji(int(config.get("server", "steel"))),
-            'aluminum': self.bot.get_emoji(int(config.get("server", "aluminum"))),
-            'food': self.bot.get_emoji(int(config.get("server", "food"))),
+            'uranium': self.bot.get_emoji(int(config.get("emoji", "uranium"))),
+            'gasoline': self.bot.get_emoji(int(config.get("emoji", "gasoline"))),
+            'munitions': self.bot.get_emoji(int(config.get("emoji", "munitions"))),
+            'steel': self.bot.get_emoji(int(config.get("emoji", "steel"))),
+            'aluminum': self.bot.get_emoji(int(config.get("emoji", "aluminum"))),
+            'food': self.bot.get_emoji(int(config.get("emoji", "food"))),
             'money': EMOJI[':moneybag:']
         }
         self.GUILD = self.bot.get_guild(self.bot.GUILD_ID)
         self.BANK_REQUEST_CHANNEL = self.GUILD.get_channel(self.BANK_REQUEST_ID)
+        self.BANK_LOGS_CHANNEL = self.GUILD.get_channel(self.BANK_LOGS_ID)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -105,23 +105,7 @@ class Bank(commands.Cog):
             if member != request_author:
                 await request_author.send(embed=embed)
 
-    @commands.group()
-    @commands.check(check_if_admin)
-    async def add_emoji(self, ctx):
-        with open(f"{directory}/emoji/uranium.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='uranium', image=img.read(), reason="Aid Requests")
-        with open(f"{directory}/emoji/gasoline.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='gasoline', image=img.read(), reason="Aid Requests")
-        with open(f"{directory}/emoji/munitions.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='munitions', image=img.read(), reason="Aid Requests")
-        with open(f"{directory}/emoji/steel.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='steel', image=img.read(), reason="Aid Requests")
-        with open(f"{directory}/emoji/aluminum.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='aluminum', image=img.read(), reason="Aid Requests")
-        with open(f"{directory}/emoji/food.png", "rb") as img:
-            await self.GUILD.create_custom_emoji(name='food', image=img.read(), reason="Aid Requests")
-
-    @commands.group()
+    @commands.command()
     async def aid(self, ctx):
         """
         Request military aid from Alliance
@@ -133,7 +117,6 @@ class Bank(commands.Cog):
             return
 
         aid_dm = await ctx.message.author.create_dm()
-        bot_user = self.bot.user
 
         aid_embed = discord.Embed(title="Military Aid Request", colour=discord.Colour(self.bot.COLOUR))
         aid_embed.add_field(name="**Process:**",
@@ -146,12 +129,10 @@ class Bank(commands.Cog):
 
         aid_embed = await aid_dm.send(embed=aid_embed)
 
-        await asyncio.sleep(0.5)
-        await ctx.message.delete()
+        await self_delete(ctx)
 
         for _, emoji in self.resource_emoji.items():
             await aid_embed.add_reaction(emoji)
-
         await aid_embed.add_reaction(EMOJI[':white_check_mark:'])
 
         # noinspection PyShadowingNames
@@ -330,7 +311,7 @@ class Bank(commands.Cog):
             embed = discord.Embed(description="**Successfully created aid request**", colour=discord.Colour(self.bot.COLOUR))
             await aid_dm.send(embed=embed)
 
-    @commands.group()
+    @commands.command()
     @has_permissions(manage_roles=True)
     async def requests(self, ctx):
         if ctx.message.channel != self.BANK_REQUEST_CHANNEL:
@@ -364,6 +345,26 @@ class Bank(commands.Cog):
             _links += f"[Aid request for]({x}) {y}\n"
         embed.add_field(name="Request Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def deposit(self, ctx):
+        await self_delete(ctx)
+        deposit_dm = await ctx.message.author.create_dm()
+
+    @commands.command()
+    async def withdraw(self, ctx):
+        await self_delete(ctx)
+        withdraw_dm = await ctx.message.author.create_dm()
+
+    @commands.command(aliases=['deposits'])
+    async def holdings(self, ctx):
+        await self_delete(ctx)
+        holdings_dm = await ctx.message.author.create_dm()
+
+    @commands.command(aliases=['deposits'])
+    async def loan(self, ctx):
+        await self_delete(ctx)
+        loan_dm = await ctx.message.author.create_dm()
 
 
 def setup(bot):

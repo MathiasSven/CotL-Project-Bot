@@ -8,13 +8,19 @@ AUTO_ROLE_ID =
 MEMBER_ROLE_ID =
 PUBLIC_CATEGORY_ID =
 APPLICATION_CHANNEL_ID =
+MODERATION_LOGS_CHANNEL_ID =
 API_URL =
 GUILD_INVITE_URL =
 COLOUR = 0xa57d48
 
 PNW_API_KEY =
 BANK_REQUEST_ID =
+BANK_LOGS_ID =
 
+[utils]
+WAR_ROOMS_CATEGORY_ID =
+
+[emoji]
 uranium =
 gasoline =
 munitions =
@@ -22,5 +28,13 @@ steel =
 aluminum =
 food =
 
-[utils]
-WAR_ROOMS_CATEGORY_ID =
+attrition =
+turtle =
+blitzkrieg =
+fortress =
+moneybags =
+pirate =
+tactician =
+guardian =
+covert =
+arcane =

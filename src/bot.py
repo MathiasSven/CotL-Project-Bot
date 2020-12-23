@@ -32,6 +32,7 @@ class MyBot(commands.Bot):
         self.GUILD_ID = int(config.get("server", "GUILD_ID"))
         self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
         self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
+        self.MODERATION_LOGS_CHANNEL_ID = int(config.get("server", "MODERATION_LOGS_CHANNEL_ID"))
         self.PUBLIC_CATEGORY_ID = int(config.get("server", "PUBLIC_CATEGORY_ID"))
         self.ADMIN_ID = int(config.get("server", "ADMIN_ID"))
         self.API_KEY = config.get("server", "API_KEY")
@@ -47,6 +48,7 @@ class MyBot(commands.Bot):
         self.AUTO_ROLE = self.GUILD.get_role(self.AUTO_ROLE_ID)
         self.SYSTEM_CHANNEL = self.GUILD.system_channel
         self.APPLICATION_CHANNEL = self.GUILD.get_channel(self.APPLICATION_CHANNEL_ID)
+        self.MODERATION_LOGS_CHANNEL = self.GUILD.get_channel(self.MODERATION_LOGS_CHANNEL_ID)
         # self.PUBLIC_CATEGORY = self.GUILD.get_channel(self.PUBLIC_CATEGORY_ID)
 
         await self.change_presence(activity=activity)
@@ -67,9 +69,31 @@ class MyBot(commands.Bot):
         else:
             await super(MyBot, self).on_command_error(ctx, exception)
 
+    async def moderation_log(self, event: str, **kwargs):
+        embed = None
+        member = kwargs.get('member', None)
+        if event == 'server_join':
+            embed = discord.Embed(description=f"{member.mention} **has joined the server.**", colour=discord.Colour(self.COLOUR))
+        elif event == 'left_server':
+            roles = [role.mention for role in member.roles]
+            del roles[0]
+            roles_append = f"**Their roles were:** {' '.join(roles)}" if roles else "**They had no roles.**"
+            embed = discord.Embed(description=f"{member.mention} **has left the server.**\n"
+                                              f"{roles_append}", colour=discord.Colour(self.COLOUR))
+        elif event == 'captcha_timeout':
+            embed = discord.Embed(description=f"{member.mention} **took too long to answer the captcha.**", colour=discord.Colour(self.COLOUR))
+        elif event == 'captcha_passed':
+            embed = discord.Embed(description=f"{member.mention} **has successfully answered the captcha.**", colour=discord.Colour(self.COLOUR))
+        elif event == 'incorrect_captcha':
+            embed = discord.Embed(description=f"{member.mention} **incorrectly answered the captcha.**", colour=discord.Colour(self.COLOUR))
+        elif event == 'failed_captcha':
+            embed = discord.Embed(description=f"{member.mention} **failed the captcha too many times, they were kicked.**", colour=discord.Colour(self.COLOUR))
+        await self.MODERATION_LOGS_CHANNEL.send(embed=embed)
+
     async def on_member_join(self, member):
         if member.bot:
             return
+        await self.moderation_log('server_join', member=member)
         verify_dm = await member.create_dm()
 
         # characters = string.ascii_uppercase + "123456789123456789123456789"
@@ -83,7 +107,7 @@ class MyBot(commands.Bot):
 
         verify_embed = discord.Embed(title="Welcome to the Children of the Light", colour=discord.Colour(self.COLOUR))
         # verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
-        verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Numbers**\n\u200b", inline=False)
+        verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Numbers** and **No Spaces**\n\u200b", inline=False)
         verify_embed.add_field(name="**Why?**", value="This is to protect the server against\nmalicious raids using automated bots", inline=False)
         verify_embed.add_field(name="\u200b", value="**Your Captcha:**", inline=False)
         verify_embed.set_image(url=f'attachment://{captcha_result}.png')
@@ -102,22 +126,27 @@ class MyBot(commands.Bot):
                 captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
             except asyncio.TimeoutError:
                 await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
-                await member.kick(reason="Took to long to answer the captcha.")
+                await self.moderation_log('captcha_timeout')
+                await member.kick(reason="Took too long to answer the captcha.")
                 break
             else:
                 if captcha_attempt.content == captcha_result:
                     await verify_dm.send(f'You successfully answered the captcha! You should now have access to the server.')
+                    await self.moderation_log('captcha_passed', member=member)
                     await self.verified_new_user(member)
                     break
                 else:
                     if i == 4:
                         await verify_dm.send(
                             f'You have **incorrectly** answered the captcha **{number_of_tries}** times.\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
+                        await self.moderation_log('failed_captcha', member=member)
                         await member.kick(reason="Failed the captcha multiple times.")
                     elif i == 3:
                         await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempt left.')
+                        await self.moderation_log('incorrect_captcha', member=member)
                     else:
                         await verify_dm.send(f'Your answer was incorrect, you have **{number_of_tries - 1 - i}** attempts left.')
+                        await self.moderation_log('incorrect_captcha', member=member)
 
     # New Method
     async def verified_new_user(self, member):
@@ -162,6 +191,7 @@ class MyBot(commands.Bot):
             print(f"Member join call: {json_response}")
 
     async def on_member_remove(self, member):
+        await self.moderation_log('left_server', member=member)
         data = {
             "id": member.id,
         }
@@ -170,8 +200,6 @@ class MyBot(commands.Bot):
             print(f"Member remove call: {json_response}")
 
     async def on_member_update(self, before, after):
-        if len(before.roles) == 1:
-            return
         if before.roles != after.roles or before.nick != after.nick:
             if before.roles != after.roles:
                 roles = []
@@ -224,7 +252,7 @@ class MyBot(commands.Bot):
         data = {
             'id': role.id
         }
-        async with aiohttp.request('PUT', f"{self.API_URL}/role-create", json=data, headers={'x-api-key': self.API_KEY}) as response:
+        async with aiohttp.request('PUT', f"{self.API_URL}/role-remove", json=data, headers={'x-api-key': self.API_KEY}) as response:
             json_response = await response.text()
             print(f"Role deletion call: {json_response}")
 
@@ -249,6 +277,7 @@ async def start_database():
         modules={"models": ["src.models"]}
     )
     await tortoise.Tortoise.generate_schemas()
+
 
 instance = MyBot()
 
