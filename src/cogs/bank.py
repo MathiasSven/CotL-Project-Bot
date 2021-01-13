@@ -394,7 +394,9 @@ class Bank(commands.Cog):
                            record['receiver_id'] == self.bot.AA_ID and
                            (datetime.utcnow() - datetime.strptime(record['tx_datetime'], '%Y-%m-%d %H:%M:%S')).days < max_days_passed and
                            record['note'].lower() == "deposit"]
-
+                if len(records) == 0:
+                    await deposit_dm.send(f'There are no deposits in the last {max_days_passed} days.')
+                    return
                 records.sort(key=lambda d: datetime.strptime(d['tx_datetime'], '%Y-%m-%d %H:%M:%S'), reverse=True)
                 for i, record in list(enumerate(records)):
                     embed = discord.Embed(title="Is this your deposit?", colour=discord.Colour(self.bot.COLOUR))
@@ -423,7 +425,7 @@ class Bank(commands.Cog):
                             chosen_record = record
                             break
                         else:
-                            if i == len(records) + 1:
+                            if i == len(records) - 1:
                                 await deposit_dm.send(f'There are no previous deposits in the last {max_days_passed} days.')
                                 return
                             else:
@@ -551,8 +553,8 @@ class Bank(commands.Cog):
             resource_amount = await self.resource_getter(user=ctx.message.author, channel=withdraw_dm, _type='withdraw', getter_message=withdraw_embed)
             if resource_amount is None:
                 return
-
-            data = dict(resource_amount.append(('nationid', nation_object.nation_id)))
+            resource_amount.append(('nationid', nation_object.nation_id))
+            data = dict(resource_amount)
             async with aiohttp.request('POST', f"{self.bot.API_URL}/bank-withdraw", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                 json_response = await response.text()
                 print(json_response)
@@ -601,7 +603,7 @@ class Bank(commands.Cog):
         await self_delete(ctx)
         loan_dm = await ctx.message.author.create_dm()
 
-    @commands.command(aliases=['deposits'])
+    @commands.command()
     async def available_holdings(self, ctx):
         await self_delete(ctx)
         holdings_dm = await ctx.message.author.create_dm()
@@ -622,7 +624,6 @@ class Bank(commands.Cog):
 
         data = json.loads(json_response)
         data.pop('nation_id')
-        data.pop('last_updated')
         holdings_embed = discord.Embed(title="Available Holdings:", colour=discord.Colour(self.bot.COLOUR))
         holdings_embed.add_field(name="Nation Link:",
                                  value=f"https://politicsandwar.com/nation/id={nation_object.nation_id}",
