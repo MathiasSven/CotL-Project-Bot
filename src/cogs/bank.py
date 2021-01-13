@@ -1,6 +1,8 @@
 import asyncio
+import json
 import re
 import urllib.parse
+from datetime import datetime
 
 import aiohttp
 import discord
@@ -29,7 +31,12 @@ class Bank(commands.Cog):
     async def startup(self):
         await self.bot.wait_until_ready()
         self.resource_emoji = {
+            'coal': self.bot.get_emoji(int(config.get("emoji", "coal"))),
+            'oil': self.bot.get_emoji(int(config.get("emoji", "oil"))),
             'uranium': self.bot.get_emoji(int(config.get("emoji", "uranium"))),
+            'lead': self.bot.get_emoji(int(config.get("emoji", "lead"))),
+            'iron': self.bot.get_emoji(int(config.get("emoji", "iron"))),
+            'bauxite': self.bot.get_emoji(int(config.get("emoji", "bauxite"))),
             'gasoline': self.bot.get_emoji(int(config.get("emoji", "gasoline"))),
             'munitions': self.bot.get_emoji(int(config.get("emoji", "munitions"))),
             'steel': self.bot.get_emoji(int(config.get("emoji", "steel"))),
@@ -37,6 +44,7 @@ class Bank(commands.Cog):
             'food': self.bot.get_emoji(int(config.get("emoji", "food"))),
             'money': EMOJI[':moneybag:']
         }
+        self.aid_emoji = {x: self.resource_emoji[x] for x in self.resource_emoji if x not in ['coal', 'oil', 'lead', 'iron', 'bauxite']}
         self.GUILD = self.bot.get_guild(self.bot.GUILD_ID)
         self.BANK_REQUEST_CHANNEL = self.GUILD.get_channel(self.BANK_REQUEST_ID)
         self.BANK_LOGS_CHANNEL = self.GUILD.get_channel(self.BANK_LOGS_ID)
@@ -105,6 +113,82 @@ class Bank(commands.Cog):
             if member != request_author:
                 await request_author.send(embed=embed)
 
+    async def resource_getter(self, user, channel, _type, getter_message):
+
+        def check(msg):
+            return msg.channel == channel and msg.author == user
+
+        resources_requested = []
+        _reactions = await channel.fetch_message(getter_message.id)
+        _reactions = _reactions.reactions
+        for _reaction in _reactions:
+            if _reaction.count == 2 and _reaction.emoji != '✅':
+                resources_requested.append(_reaction.emoji)
+
+        resource_amount = []
+        for i in resources_requested:
+            if _type == 'aid':
+                resource = list(self.aid_emoji.keys())[list(self.aid_emoji.values()).index(i)]
+            else:
+                resource = list(self.resource_emoji.keys())[list(self.resource_emoji.values()).index(i)]
+
+            if _type == 'aid':
+                embed_argument = 'the desired'
+                common_argument = 'Aid Request'
+            elif _type == 'deposit':
+                embed_argument = 'depositing'
+                common_argument = 'Deposit'
+            else:
+                embed_argument = 'the'
+                common_argument = 'Action'
+
+            embed = discord.Embed(description=f"**Type {embed_argument} amount of {resource}** {i}", colour=discord.Colour(self.bot.COLOUR))
+            await channel.send(embed=embed)
+
+            number_of_tries = 5
+            for x in range(number_of_tries):
+                if x == 1:
+                    await channel.send("Make sure to not include any commas")
+                if x == number_of_tries - 1:
+                    await channel.send("This is your last try!")
+                try:
+                    message = await self.bot.wait_for('message', timeout=60.0, check=check)
+                except asyncio.TimeoutError:
+                    await channel.send('You took too long...')
+                    return
+                else:
+                    try:
+                        amount = int(message.content)
+                        if amount < 0:
+                            await channel.send("Haha, very funny. Now please type a positive number :)")
+                            del amount
+                        elif amount > 100000000000 and _type == 'aid':
+                            await channel.send("In your dreams, try again")
+                            del amount
+                        else:
+                            break
+                    except ValueError or TypeError:
+                        if message.content == "cancel":
+                            await channel.send(f"{common_argument} Canceled")
+                            return
+                        elif message.content == "retry":
+                            # TODO
+                            await channel.send(f"{common_argument} Canceled. For now you will have to use the command again")
+                            return
+                        else:
+                            if x == number_of_tries - 1:
+                                await channel.send("You have exceeded your number of tries. Use the command again if you wish to retry")
+                                return
+                            else:
+                                await channel.send("Please type an integer")
+
+            if "amount" in locals():
+                # noinspection PyUnboundLocalVariable
+                resource_amount.append((f"{resource}", f"{amount}"))
+            else:
+                return
+        return resource_amount
+
     @commands.command()
     async def aid(self, ctx):
         """
@@ -131,13 +215,13 @@ class Bank(commands.Cog):
 
         await self_delete(ctx)
 
-        for _, emoji in self.resource_emoji.items():
+        for _, emoji in self.aid_emoji.items():
             await aid_embed.add_reaction(emoji)
         await aid_embed.add_reaction(EMOJI[':white_check_mark:'])
 
         # noinspection PyShadowingNames
         def reaction_check(reaction, user):
-            return str(reaction.emoji) == EMOJI[':white_check_mark:'] and user == ctx.message.author
+            return str(reaction.emoji) == EMOJI[':white_check_mark:'] and (user == ctx.message.author and reaction.message.channel == aid_dm)
 
         # noinspection PyShadowingNames
         def check(msg):
@@ -148,62 +232,9 @@ class Bank(commands.Cog):
         except asyncio.TimeoutError:
             await aid_dm.send('You took too long...')
         else:
-
-            resources_requested = []
-            _reactions = await aid_dm.fetch_message(aid_embed.id)
-            _reactions = _reactions.reactions
-            for _reaction in _reactions:
-                if _reaction.count == 2 and _reaction.emoji != '✅':
-                    resources_requested.append(_reaction.emoji)
-
-            resource_amount = []
-            for i in resources_requested:
-                resource = list(self.resource_emoji.keys())[list(self.resource_emoji.values()).index(i)]
-                embed = discord.Embed(description=f"**Type the desired amount of {resource}** {i}", colour=discord.Colour(self.bot.COLOUR))
-                await aid_dm.send(embed=embed)
-
-                number_of_tries = 5
-                for x in range(number_of_tries):
-                    if x == 1:
-                        await aid_dm.send("Make sure to not include any commas")
-                    if x == number_of_tries - 1:
-                        await aid_dm.send("This is your last try!")
-                    try:
-                        message = await self.bot.wait_for('message', timeout=60.0, check=check)
-                    except asyncio.TimeoutError:
-                        await aid_dm.send('You took too long...')
-                        return
-                    else:
-                        try:
-                            amount = int(message.content)
-                            if amount < 0:
-                                await aid_dm.send("Haha, very funny. Now please type a positive number :)")
-                                del amount
-                            elif amount > 100000000000:
-                                await aid_dm.send("In your dreams, try again")
-                                del amount
-                            else:
-                                break
-                        except ValueError or TypeError:
-                            if message.content == "cancel":
-                                await aid_dm.send("Aid Request Canceled")
-                                return
-                            elif message.content == "retry":
-                                # TODO
-                                await aid_dm.send("Aid Request Canceled. For now you will have to use the command again")
-                                return
-                            else:
-                                if x == number_of_tries - 1:
-                                    await aid_dm.send("You have exceeded your number of tries. Use the command again if you wish to retry")
-                                    return
-                                else:
-                                    await aid_dm.send("Please type an integer")
-
-                if "amount" in locals():
-                    # noinspection PyUnboundLocalVariable
-                    resource_amount.append((f"{resource}", f"{amount}"))
-                else:
-                    return
+            resource_amount = await self.resource_getter(user=ctx.message.author, channel=aid_dm, _type='aid', getter_message=aid_embed)
+            if resource_amount is None:
+                return
 
             embed = discord.Embed(description="**State your reason**", colour=discord.Colour(self.bot.COLOUR))
             await aid_dm.send(embed=embed)
@@ -287,7 +318,7 @@ class Bank(commands.Cog):
             reason = reason.replace("&", "and")
             withdraw_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&w_type=nation&w_recipient={nation_name.replace(' ', '%20')}&w_note=War%20Aid:%20{urllib.parse.quote(reason, safe='/')}"
             for res, amo in resource_amount:
-                public_aid_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
+                public_aid_embed.add_field(name=f"{res.capitalize()} {self.aid_emoji[res]}",
                                            value=f"{int(amo):,}")
 
                 withdraw_link += f"&w_{res}={amo}"
@@ -348,23 +379,259 @@ class Bank(commands.Cog):
 
     @commands.command()
     async def deposit(self, ctx):
+        # noinspection PyShadowingNames
+        async def check_transactions():
+            async with aiohttp.request('GET', f"https://politicsandwar.com/api/v2/nation-bank-recs/{self.PNW_API_KEY}/&nation_id={nation_object.nation_id}") as response:
+                json_response = await response.json()
+                try:
+                    records = json_response['data']
+                except KeyError:
+                    await deposit_dm.send(f"I was not able to fetch bank records, please contact a Gov member to inform about this issue.")
+                    return
+                max_days_passed = 3
+                records = [record for record in records if
+                           record['receiver_type'] == 2 and
+                           record['receiver_id'] == self.bot.AA_ID and
+                           (datetime.utcnow() - datetime.strptime(record['tx_datetime'], '%Y-%m-%d %H:%M:%S')).days < max_days_passed and
+                           record['note'].lower() == "deposit"]
+
+                records.sort(key=lambda d: datetime.strptime(d['tx_datetime'], '%Y-%m-%d %H:%M:%S'), reverse=True)
+                for i, record in list(enumerate(records)):
+                    embed = discord.Embed(title="Is this your deposit?", colour=discord.Colour(self.bot.COLOUR))
+                    embed.add_field(name="Nation Link:",
+                                    value=f"https://politicsandwar.com/nation/id={nation_object.nation_id}",
+                                    inline=False)
+                    resources_sent = [(resource, record[resource]) for resource in record if
+                                      resource in ['money', 'coal', 'oil', 'uranium', 'lead', 'iron', 'bauxite', 'gasoline', 'munitions', 'steel',
+                                                   'aluminum', 'food'] and record[resource] != 0]
+                    for res, amo in resources_sent:
+                        embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
+                                        value=f"{int(amo):,}")
+                    embed.add_field(name="Date:",
+                                    value=f"{record['tx_datetime']}")
+                    is_this_embed = await deposit_dm.send(embed=embed)
+                    await is_this_embed.add_reaction(EMOJI[':white_check_mark:'])
+                    await is_this_embed.add_reaction(EMOJI[':x:'])
+
+                    try:
+                        reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+                    except asyncio.TimeoutError:
+                        await deposit_dm.send('You took too long...')
+                        return
+                    else:
+                        if reaction.emoji == EMOJI[':white_check_mark:']:
+                            chosen_record = record
+                            break
+                        else:
+                            if i == len(records) + 1:
+                                await deposit_dm.send(f'There are no previous deposits in the last {max_days_passed} days.')
+                                return
+                            else:
+                                continue
+
+                # noinspection PyAssignmentToLoopOrWithParameter
+                async with aiohttp.request('POST', f"{self.bot.API_URL}/bank-deposit", json=chosen_record, headers={'x-api-key': self.bot.API_KEY}) as response:
+                    json_response = await response.text()
+                    print(json_response)
+                    if response.status == 201:
+                        deposited_embed = discord.Embed(description=f"**Successfully registered your deposit.**", colour=discord.Colour(self.bot.COLOUR))
+                    elif response.status == 409:
+                        deposited_embed = discord.Embed(description=f"**This deposit has already been registered.**", colour=discord.Colour(self.bot.COLOUR))
+                    await deposit_dm.send(embed=deposited_embed)
+
         await self_delete(ctx)
         deposit_dm = await ctx.message.author.create_dm()
+
+        nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
+        if nation_object is None:
+            deposit_dm.send("Your nation is not in our database. please ask for someone to link your nation and try again.")
+            return
+
+        has_deposited_embed = discord.Embed(description=f"**Have you deposited on the game already?**", colour=discord.Colour(self.bot.COLOUR))
+        has_deposited_embed = await deposit_dm.send(embed=has_deposited_embed)
+        await has_deposited_embed.add_reaction(EMOJI[':white_check_mark:'])
+        await has_deposited_embed.add_reaction(EMOJI[':x:'])
+
+        # noinspection PyShadowingNames
+        def reaction_check(reaction, user):
+            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
+                   (user == ctx.message.author and reaction.message.channel == deposit_dm)
+
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+        except asyncio.TimeoutError:
+            await deposit_dm.send('You took too long...')
+        else:
+            if reaction.emoji == EMOJI[':white_check_mark:']:
+                await check_transactions()
+            else:
+                deposit_creation_embed = discord.Embed(title="Deposit From", colour=discord.Colour(self.bot.COLOUR))
+                deposit_creation_embed.add_field(name="**Process:**",
+                                                 value="React to the resources you would like to deposit below,\nonce you have selected all of them react to the checkmark :white_check_mark:\n\u200b\n"
+                                                       "You will then be prompted to give your depositing values.",
+                                                 inline=False)
+
+                deposit_creation_embed.add_field(name="**Cancel/Retry:**",
+                                                 value="If at anytime you wish to cancel the deposit just type `cancel`, or `retry` if you entered any value incorrectly.",
+                                                 inline=False)
+
+                deposit_creation_embed = await deposit_dm.send(embed=deposit_creation_embed)
+
+                for _, emoji in self.resource_emoji.items():
+                    await deposit_creation_embed.add_reaction(emoji)
+                await deposit_creation_embed.add_reaction(EMOJI[':white_check_mark:'])
+
+                try:
+                    await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+                except asyncio.TimeoutError:
+                    await deposit_dm.send('You took too long...')
+                else:
+                    resource_amount = await self.resource_getter(user=ctx.message.author, channel=deposit_dm, _type='deposit', getter_message=deposit_creation_embed)
+                    if resource_amount is None:
+                        return
+
+                    embed = discord.Embed(title="Confirm Deposit", colour=discord.Colour(self.bot.COLOUR))
+                    embed.set_footer(text="Only react with ✅ once you have deposited in-game.")
+
+                    deposit_link = f"https://politicsandwar.com/alliance/id=7452&display=bank&d_type=nation&d_note=Deposit"
+                    for res, amo in resource_amount:
+                        embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
+                                        value=f"{int(amo):,}")
+                        deposit_link += f"&d_{res}={amo}"
+
+                    embed.add_field(name=f"Deposit Link:",
+                                    value=f"[Here]({deposit_link})",
+                                    inline=False)
+                    embed = await deposit_dm.send(embed=embed)
+                    await embed.add_reaction(EMOJI[':white_check_mark:'])
+
+                    try:
+                        await self.bot.wait_for('reaction_add', timeout=120.0, check=reaction_check)
+                    except asyncio.TimeoutError:
+                        await deposit_dm.send('You took too long...')
+                    else:
+                        await check_transactions()
 
     @commands.command()
     async def withdraw(self, ctx):
         await self_delete(ctx)
         withdraw_dm = await ctx.message.author.create_dm()
 
+        nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
+        if nation_object is None:
+            withdraw_dm.send("Your nation is not in our database. please ask for someone to link your nation and try again.")
+            return
+
+        # noinspection PyShadowingNames
+        def reaction_check(reaction, user):
+            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
+                   (user == ctx.message.author and reaction.message.channel == withdraw_dm)
+
+        withdraw_embed = discord.Embed(title="Withdraw From", colour=discord.Colour(self.bot.COLOUR))
+        withdraw_embed.add_field(name="**Process:**",
+                                 value="React to the resources you would like to withdraw below,\nonce you have selected all of them react to the checkmark :white_check_mark:\n\u200b\n"
+                                       "You will then be prompted to give your withdrawing values.",
+                                 inline=False)
+
+        withdraw_embed.add_field(name="**Cancel/Retry:**",
+                                 value="If at anytime you wish to cancel the withdraw just type `cancel`, or `retry` if you entered any value incorrectly.",
+                                 inline=False)
+
+        withdraw_embed = await withdraw_dm.send(embed=withdraw_embed)
+
+        for _, emoji in self.resource_emoji.items():
+            await withdraw_embed.add_reaction(emoji)
+        await withdraw_embed.add_reaction(EMOJI[':white_check_mark:'])
+
+        try:
+            await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+        except asyncio.TimeoutError:
+            await withdraw_dm.send('You took too long...')
+        else:
+            resource_amount = await self.resource_getter(user=ctx.message.author, channel=withdraw_dm, _type='withdraw', getter_message=withdraw_embed)
+            if resource_amount is None:
+                return
+
+            data = dict(resource_amount.append(('nationid', nation_object.nation_id)))
+            async with aiohttp.request('POST', f"{self.bot.API_URL}/bank-withdraw", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                json_response = await response.text()
+                print(json_response)
+                if response.status == 201:
+                    withdrew_embed = discord.Embed(description=f"**Successfully registered your withdraw request.**", colour=discord.Colour(self.bot.COLOUR))
+                elif response.status == 403:
+                    withdrew_embed = discord.Embed(description=f"**You requested more of a resource then you have _available_**", colour=discord.Colour(self.bot.COLOUR))
+                elif response.status == 404:
+                    withdrew_embed = discord.Embed(description=f"**You don't have any holdings to withdraw from**", colour=discord.Colour(self.bot.COLOUR))
+                await withdraw_dm.send(embed=withdrew_embed)
+
     @commands.command(aliases=['deposits'])
     async def holdings(self, ctx):
         await self_delete(ctx)
         holdings_dm = await ctx.message.author.create_dm()
 
+        nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
+        if nation_object is None:
+            holdings_dm.send("Your nation is not our database. please ask for someone to link your nation and try again.")
+            return
+
+        data = {
+            'nationid': nation_object.nation_id
+        }
+        async with aiohttp.request('GET', f"{self.bot.API_URL}/bank-holdings", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+            json_response = await response.text()
+            if response.status == 404:
+                await holdings_dm.send("You dont have any holdings.")
+                return
+
+        data = json.loads(json_response)
+        data.pop('nation_id')
+        data.pop('last_updated')
+        holdings_embed = discord.Embed(title="Holdings:", colour=discord.Colour(self.bot.COLOUR))
+        holdings_embed.add_field(name="Nation Link:",
+                                 value=f"https://politicsandwar.com/nation/id={nation_object.nation_id}",
+                                 inline=False)
+        for res in data:
+            holdings_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
+                                     value=f"{int(data[res]):,}", inline=True)
+
+        await holdings_dm.send(embed=holdings_embed)
+
     @commands.command()
     async def loan(self, ctx):
         await self_delete(ctx)
         loan_dm = await ctx.message.author.create_dm()
+
+    @commands.command(aliases=['deposits'])
+    async def available_holdings(self, ctx):
+        await self_delete(ctx)
+        holdings_dm = await ctx.message.author.create_dm()
+
+        nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
+        if nation_object is None:
+            holdings_dm.send("Your nation is not our database. please ask for someone to link your nation and try again.")
+            return
+
+        data = {
+            'nationid': nation_object.nation_id
+        }
+        async with aiohttp.request('GET', f"{self.bot.API_URL}/bank-ava-holdings", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+            json_response = await response.text()
+            if response.status == 404:
+                await holdings_dm.send("You dont have any holdings.")
+                return
+
+        data = json.loads(json_response)
+        data.pop('nation_id')
+        data.pop('last_updated')
+        holdings_embed = discord.Embed(title="Available Holdings:", colour=discord.Colour(self.bot.COLOUR))
+        holdings_embed.add_field(name="Nation Link:",
+                                 value=f"https://politicsandwar.com/nation/id={nation_object.nation_id}",
+                                 inline=False)
+        for res in data:
+            holdings_embed.add_field(name=f"{res.capitalize()} {self.resource_emoji[res]}",
+                                     value=f"{int(data[res]):,}", inline=True)
+
+        await holdings_dm.send(embed=holdings_embed)
 
 
 def setup(bot):

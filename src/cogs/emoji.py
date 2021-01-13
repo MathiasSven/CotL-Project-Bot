@@ -32,7 +32,7 @@ class Emoji(commands.Cog):
     @commands.group()
     @commands.check(check_if_admin)
     async def add_bank_emoji(self, ctx):
-        emoji_to_add = ['uranium', 'gasoline', 'munitions', 'steel', 'aluminum', 'food']
+        emoji_to_add = ['coal', 'oil', 'uranium', 'lead', 'iron', 'bauxite', 'gasoline', 'munitions', 'steel', 'aluminum', 'food']
         emoji_ids = {}
 
         for emoji_name in emoji_to_add:

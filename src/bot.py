@@ -30,6 +30,7 @@ class MyBot(commands.Bot):
     def __init__(self, **options):
         super().__init__(command_prefix=config.get("server", "PREFIX"), intents=intents)
         self.GUILD_ID = int(config.get("server", "GUILD_ID"))
+        self.AA_ID = int(config.get("server", "AA_ID"))
         self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
         self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
         self.MODERATION_LOGS_CHANNEL_ID = int(config.get("server", "MODERATION_LOGS_CHANNEL_ID"))
@@ -77,6 +78,8 @@ class MyBot(commands.Bot):
         elif event == 'left_server':
             roles = [role.mention for role in member.roles]
             del roles[0]
+            if len(roles) == 0:
+                return
             roles_append = f"**Their roles were:** {' '.join(roles)}" if roles else "**They had no roles.**"
             embed = discord.Embed(description=f"{member.mention} **has left the server.**\n"
                                               f"{roles_append}", colour=discord.Colour(self.COLOUR))

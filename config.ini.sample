@@ -4,6 +4,7 @@ API_KEY =
 PREFIX = >
 ADMIN_ID =
 GUILD_ID =
+AA_ID =
 AUTO_ROLE_ID =
 MEMBER_ROLE_ID =
 PUBLIC_CATEGORY_ID =
@@ -12,7 +13,6 @@ MODERATION_LOGS_CHANNEL_ID =
 API_URL =
 GUILD_INVITE_URL =
 COLOUR = 0xa57d48
-
 PNW_API_KEY =
 BANK_REQUEST_ID =
 BANK_LOGS_ID =
@@ -21,13 +21,17 @@ BANK_LOGS_ID =
 WAR_ROOMS_CATEGORY_ID =
 
 [emoji]
+coal =
+oil =
 uranium =
+lead =
+iron =
+bauxite =
 gasoline =
 munitions =
 steel =
 aluminum =
 food =
-
 attrition =
 turtle =
 blitzkrieg =
