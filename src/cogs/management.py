@@ -185,6 +185,7 @@ class Management(commands.Cog):
             embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command()
     @has_permissions(manage_roles=True)
     async def push_local_links(self, ctx):
         await asyncio.sleep(0.5)
