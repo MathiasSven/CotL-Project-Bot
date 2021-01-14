@@ -185,6 +185,24 @@ class Management(commands.Cog):
             embed.add_field(name="Nation Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
 
+    @has_permissions(manage_roles=True)
+    async def push_local_links(self, ctx):
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
+        all_links = await PnWNation.all()
+        for link in all_links:
+            data = {
+                'id': str(link.discord_user_id),
+                'nation_id': str(link.nation_id),
+            }
+            async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                json_response = await response.text()
+                if response.status == 201:
+                    pass
+                else:
+                    await ctx.send(f"One of the links did not push correctly.")
+                    break
+
     @purge.error
     @_from.error
     @till.error
