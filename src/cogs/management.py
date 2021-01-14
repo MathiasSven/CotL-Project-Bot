@@ -197,11 +197,11 @@ class Management(commands.Cog):
                 'nation_id': str(link.nation_id),
             }
             async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                json_response = await response.text()
                 if response.status == 201:
                     pass
                 else:
-                    print(response.text())
-                    print(response.status)
+                    print(json_response)
                     await ctx.send(f"One of the links did not push correctly.")
                     break
 
