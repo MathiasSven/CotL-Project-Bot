@@ -57,10 +57,6 @@ class MyBot(commands.Bot):
 
     async def on_command_error(self, ctx, exception):
         if isinstance(exception, commands.errors.CommandError):
-            try:
-                await selfdelete.self_delete(ctx)
-            except discord.NotFound:
-                pass
             if isinstance(exception, commands.errors.MissingRole):
                 await ctx.send("You don't have the role necessary to run this command.")
             elif isinstance(exception, commands.MissingPermissions):
