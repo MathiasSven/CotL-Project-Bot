@@ -200,6 +200,8 @@ class Management(commands.Cog):
                 json_response = await response.text()
                 if response.status == 201:
                     pass
+                elif response.status == 404 and self.bot.GUILD.get_member(link.discord_user_id) is None:
+                    pass
                 else:
                     print(json_response)
                     await ctx.send(f"One of the links did not push correctly.")
