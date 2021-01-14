@@ -201,6 +201,7 @@ class Management(commands.Cog):
                     pass
                 else:
                     print(response.text())
+                    print(response.status)
                     await ctx.send(f"One of the links did not push correctly.")
                     break
 
