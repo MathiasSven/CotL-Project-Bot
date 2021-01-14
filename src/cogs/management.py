@@ -200,6 +200,7 @@ class Management(commands.Cog):
                 if response.status == 201:
                     pass
                 else:
+                    print(response.status)
                     await ctx.send(f"One of the links did not push correctly.")
                     break
 
