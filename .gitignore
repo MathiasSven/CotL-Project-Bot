@@ -53,3 +53,5 @@ wheels/
 config.ini
 
 db.*
+
+alliancewars.json
