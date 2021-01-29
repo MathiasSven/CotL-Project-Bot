@@ -34,11 +34,14 @@ class Tasks(commands.Cog):
             json_response = json.loads(await response.text())
             active_wars = {"wars": [war for war in json_response["wars"] if war["status"] == "Active"]}
 
-            with open(f'{directory}/alliancewars.json', 'r', encoding='utf-8') as f:
-                try:
-                    previous_active_wars = json.load(f)
-                except json.decoder.JSONDecodeError:
-                    previous_active_wars = False
+            try:
+                with open(f'{directory}/alliancewars.json', 'r', encoding='utf-8') as f:
+                    try:
+                        previous_active_wars = json.load(f)
+                    except json.decoder.JSONDecodeError:
+                        previous_active_wars = None
+            except IOError:
+                previous_active_wars = None
 
             with open(f'{directory}/alliancewars.json', 'w+', encoding='utf-8') as f:
                 if previous_active_wars:
