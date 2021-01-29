@@ -28,15 +28,20 @@ class Tasks(commands.Cog):
     async def on_ready(self):
         print('Tasks Cog is loaded')
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=10)
     async def post_latest_aa_wars(self):
         async with aiohttp.request('GET', f"http://politicsandwar.com/api/wars/500&alliance_id={self.AA_ID}&key={self.PNW_API_KEY}") as response:
             json_response = json.loads(await response.text())
             active_wars = {"wars": [war for war in json_response["wars"] if war["status"] == "Active"]}
 
-            with open(f'{directory}/alliancewars.json', 'w+', encoding='utf-8') as f:
-                if f.read():
+            with open(f'{directory}/alliancewars.json', 'r', encoding='utf-8') as f:
+                try:
                     previous_active_wars = json.load(f)
+                except json.decoder.JSONDecodeError:
+                    previous_active_wars = False
+
+            with open(f'{directory}/alliancewars.json', 'w+', encoding='utf-8') as f:
+                if previous_active_wars:
                     difference = {"wars": [war for war in active_wars["wars"] if war["warID"] not in [war["warID"] for war in previous_active_wars["wars"]]]}
                 else:
                     difference = active_wars
