@@ -189,6 +189,13 @@ class Bank(commands.Cog):
                 return
         return resource_amount
 
+    @staticmethod
+    def reaction_check_constructor(ctx, channel):
+        def reaction_check(reaction, user):
+            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
+                   (user == ctx.message.author and reaction.message.channel == channel)
+        return reaction_check
+
     @commands.command()
     async def aid(self, ctx):
         """
@@ -219,9 +226,7 @@ class Bank(commands.Cog):
             await aid_embed.add_reaction(emoji)
         await aid_embed.add_reaction(EMOJI[':white_check_mark:'])
 
-        # noinspection PyShadowingNames
-        def reaction_check(reaction, user):
-            return str(reaction.emoji) == EMOJI[':white_check_mark:'] and (user == ctx.message.author and reaction.message.channel == aid_dm)
+        reaction_check = self.reaction_check_constructor(ctx, aid_dm)
 
         # noinspection PyShadowingNames
         def check(msg):
@@ -233,7 +238,7 @@ class Bank(commands.Cog):
             await aid_dm.send('You took too long...')
         else:
             resource_amount = await self.resource_getter(user=ctx.message.author, channel=aid_dm, _type='aid', getter_message=aid_embed)
-            if resource_amount is None:
+            if resource_amount is None or not resource_amount:
                 return
 
             embed = discord.Embed(description="**State your reason**", colour=discord.Colour(self.bot.COLOUR))
@@ -454,10 +459,7 @@ class Bank(commands.Cog):
         await has_deposited_embed.add_reaction(EMOJI[':white_check_mark:'])
         await has_deposited_embed.add_reaction(EMOJI[':x:'])
 
-        # noinspection PyShadowingNames
-        def reaction_check(reaction, user):
-            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
-                   (user == ctx.message.author and reaction.message.channel == deposit_dm)
+        reaction_check = self.reaction_check_constructor(ctx, deposit_dm)
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
@@ -467,7 +469,7 @@ class Bank(commands.Cog):
             if reaction.emoji == EMOJI[':white_check_mark:']:
                 await check_transactions()
             else:
-                deposit_creation_embed = discord.Embed(title="Deposit From", colour=discord.Colour(self.bot.COLOUR))
+                deposit_creation_embed = discord.Embed(title="Deposit Form", colour=discord.Colour(self.bot.COLOUR))
                 deposit_creation_embed.add_field(name="**Process:**",
                                                  value="React to the resources you would like to deposit below,\nonce you have selected all of them react to the checkmark :white_check_mark:\n\u200b\n"
                                                        "You will then be prompted to give your depositing values.",
@@ -524,12 +526,9 @@ class Bank(commands.Cog):
             withdraw_dm.send("Your nation is not in our database. please ask for someone to link your nation and try again.")
             return
 
-        # noinspection PyShadowingNames
-        def reaction_check(reaction, user):
-            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
-                   (user == ctx.message.author and reaction.message.channel == withdraw_dm)
+        reaction_check = self.reaction_check_constructor(ctx, withdraw_dm)
 
-        withdraw_embed = discord.Embed(title="Withdraw From", colour=discord.Colour(self.bot.COLOUR))
+        withdraw_embed = discord.Embed(title="Withdraw Form", colour=discord.Colour(self.bot.COLOUR))
         withdraw_embed.add_field(name="**Process:**",
                                  value="React to the resources you would like to withdraw below,\nonce you have selected all of them react to the checkmark :white_check_mark:\n\u200b\n"
                                        "You will then be prompted to give your withdrawing values.",
@@ -563,7 +562,7 @@ class Bank(commands.Cog):
                 elif response.status == 403:
                     withdrew_embed = discord.Embed(description=f"**You requested more of a resource then you have _available_**", colour=discord.Colour(self.bot.COLOUR))
                 elif response.status == 404:
-                    withdrew_embed = discord.Embed(description=f"**You don't have any holdings to withdraw from**", colour=discord.Colour(self.bot.COLOUR))
+                    withdrew_embed = discord.Embed(description=f"**You don't have any holdings to withdraw form**", colour=discord.Colour(self.bot.COLOUR))
                 await withdraw_dm.send(embed=withdrew_embed)
 
     @commands.command(aliases=['deposits'])
@@ -598,10 +597,44 @@ class Bank(commands.Cog):
 
         await holdings_dm.send(embed=holdings_embed)
 
-    @commands.command()
-    async def loan(self, ctx):
-        await self_delete(ctx)
-        loan_dm = await ctx.message.author.create_dm()
+    # @commands.command()
+    # async def loan(self, ctx):
+    #     await self_delete(ctx)
+    #     loan_dm = await ctx.message.author.create_dm()
+    #
+    #     nation_object = await PnWNation.get_or_none(pk=ctx.message.author.id)
+    #     if nation_object is None:
+    #         loan_dm.send("Your nation is not our database. please ask for someone to link your nation and try again.")
+    #         return
+    #
+    #     def reaction_check(reaction, user):
+    #         return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
+    #                (user == ctx.message.author and reaction.message.channel == loan_dm)
+    #
+    #     loan_embed = discord.Embed(title="Loan Form", colour=discord.Colour(self.bot.COLOUR))
+    #     loan_embed.add_field(name="**Process:**",
+    #                          value="React to the resources you would like to withdraw below,\nonce you have selected all of them react to the checkmark :white_check_mark:\n\u200b\n"
+    #                                "You will then be prompted to give your withdrawing values.",
+    #                          inline=False)
+    #
+    #     loan_embed.add_field(name="**Cancel/Retry:**",
+    #                          value="If at anytime you wish to cancel the withdraw just type `cancel`, or `retry` if you entered any value incorrectly.",
+    #                          inline=False)
+    #
+    #     loan_embed = await loan_dm.send(embed=loan_embed)
+    #
+    #     for _, emoji in self.resource_emoji.items():
+    #         await withdraw_embed.add_reaction(emoji)
+    #     await withdraw_embed.add_reaction(EMOJI[':white_check_mark:'])
+    #
+    #     try:
+    #         await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+    #     except asyncio.TimeoutError:
+    #         await withdraw_dm.send('You took too long...')
+    #     else:
+    #         resource_amount = await self.resource_getter(user=ctx.message.author, channel=withdraw_dm, _type='withdraw', getter_message=withdraw_embed)
+    #         if resource_amount is None:
+    #             return
 
     @commands.command()
     async def available_holdings(self, ctx):

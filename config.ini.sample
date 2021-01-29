@@ -20,6 +20,9 @@ BANK_LOGS_ID =
 [utils]
 WAR_ROOMS_CATEGORY_ID =
 
+[tasks]
+MILCON_BOT_CHANNEL_ID =
+
 [emoji]
 coal =
 oil =

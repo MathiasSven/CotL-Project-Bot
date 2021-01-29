@@ -32,6 +32,7 @@ class MyBot(commands.Bot):
         self.GUILD_ID = int(config.get("server", "GUILD_ID"))
         self.AA_ID = int(config.get("server", "AA_ID"))
         self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
+        self.MILCON_BOT_CHANNEL_ID = int(config.get("tasks", "MILCON_BOT_CHANNEL_ID"))
         self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
         self.MODERATION_LOGS_CHANNEL_ID = int(config.get("server", "MODERATION_LOGS_CHANNEL_ID"))
         self.PUBLIC_CATEGORY_ID = int(config.get("server", "PUBLIC_CATEGORY_ID"))
@@ -47,6 +48,7 @@ class MyBot(commands.Bot):
     async def on_ready(self):
         self.GUILD = self.get_guild(self.GUILD_ID)
         self.AUTO_ROLE = self.GUILD.get_role(self.AUTO_ROLE_ID)
+        self.MILCON_BOT_CHANNEL = self.GUILD.get_channel(self.MILCON_BOT_CHANNEL_ID)
         self.SYSTEM_CHANNEL = self.GUILD.system_channel
         self.APPLICATION_CHANNEL = self.GUILD.get_channel(self.APPLICATION_CHANNEL_ID)
         self.MODERATION_LOGS_CHANNEL = self.GUILD.get_channel(self.MODERATION_LOGS_CHANNEL_ID)

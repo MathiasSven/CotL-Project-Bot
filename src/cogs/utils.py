@@ -84,7 +84,7 @@ class Utils(commands.Cog):
     #     if nation_id is None:
     #         return
     #
-    #     async with aiohttp.request('GET', f"http://politicsandwar.com/api/nation/id={nation_id}&key={self.PNW_API_KEY}") as response:
+    #     async with aiohttp.request('GET', http://politicsandwar.com/api/nation/id={nation_id}&key={self.PNW_API_KEY}) as response:
     #         json_response = await response.json()
     #         try:
     #             success = json_response['success']
