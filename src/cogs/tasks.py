@@ -81,7 +81,7 @@ class Tasks(commands.Cog):
                 self.embed.add_field(name="War Policy", value=f"{nation['war_policy']} {self.cog_instance.war_policy_emoji[nation['war_policy'].lower()]}", inline=True)
                 self.embed.add_field(name="War Range", value=f"Defensive {'{:.2f}'.format(0.57143 * float(nation['score']))} - {'{:.2f}'.format(1.33333 * float(nation['score']))}\n"
                                                              f"Offensive {'{:.2f}'.format(0.75000 * float(nation['score']))} - {'{:.2f}'.format(1.75000 * float(nation['score']))}", inline=False)
-                self.embed.add_field(name="Open Slots", value=f"{5 - nation['offensivewars']} {EMOJI[':crossed_swords:']} / {nation['defensivewars']} {EMOJI[':shield:']}", inline=True)
+                self.embed.add_field(name="Open Slots", value=f"{5 - nation['offensivewars']} {EMOJI[':crossed_swords:']} / {3 - nation['defensivewars']} {EMOJI[':shield:']}", inline=True)
                 self.embed.add_field(name="Missiles", value=f"{nation['missiles']}", inline=True)
                 self.embed.add_field(name="Nukes", value=f"{nation['nukes']}", inline=True)
                 self.embed.add_field(name="Army Values",
