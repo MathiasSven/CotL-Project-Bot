@@ -1,5 +1,6 @@
 import os
 import aiohttp
+import aiofiles
 from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 
 import discord
@@ -10,7 +11,7 @@ from src.config import Config
 from src.utils.inputparse import InputParser
 from src.utils.selfdelete import self_delete
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 config = Config()
 
 
@@ -74,6 +75,51 @@ class Utils(commands.Cog):
         else:
             mentions = discord.AllowedMentions(users=False)
             await ctx.send(f"<@{user_pnw.discord_user_id}>", allowed_mentions=mentions)
+
+    @commands.command(aliases=['mili'])
+    async def militarization(self, ctx, alliance_id=None):
+        from random import randint
+        if not alliance_id:
+            alliance_id = self.bot.AA_ID
+        else:
+            try:
+                alliance_id = int(alliance_id)
+            except ValueError:
+                await ctx.send("Invalid alliance ID.")
+                return
+
+        async with aiohttp.request('GET', f"https://checkapi.bsnk.dev/getChart?allianceID={alliance_id}") as response:
+            if response.status != 200:
+                await ctx.send("Alliance with given ID not found.")
+                return
+            else:
+                pass
+
+            chart_file_name = f"{randint(1, 1000000)}.png"
+            chart_file_path = f"{directory}/militarization/{chart_file_name}"
+            async with aiofiles.open(chart_file_path, "wb") as f:
+                await f.write(await response.read())
+
+        async with aiohttp.request('GET', f"http://politicsandwar.com/api/alliance/id={alliance_id}&key={self.PNW_API_KEY}") as response:
+            json_response = await response.json()
+            try:
+                success = json_response['success']
+            except KeyError:
+                await ctx.send("Something went wrong")
+                return
+            else:
+                pass
+
+        image_file = discord.File(chart_file_path, filename=chart_file_name)
+
+        militarization_embed = discord.Embed(title=json_response['name'], url=f"https://politicsandwar.com/alliance/id={json_response['allianceid']}", colour=discord.Colour(self.bot.COLOUR))
+        militarization_embed.set_thumbnail(url=json_response["flagurl"])
+        militarization_embed.add_field(name="\u200b", value="**Militarization Chart:**")
+        militarization_embed.set_image(url=f'attachment://{chart_file_name}')
+
+        await ctx.send(file=image_file, embed=militarization_embed)
+
+        os.remove(chart_file_path)
 
     # @commands.command(aliases=['mag', 'm', 'warinfo'])
     # async def magnify(self, ctx, nation_link):

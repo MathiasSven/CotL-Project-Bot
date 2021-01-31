@@ -1,0 +1,1 @@
+Temporary folder for holding the militarization charts that are generated
