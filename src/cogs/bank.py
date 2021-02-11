@@ -202,8 +202,7 @@ class Bank(commands.Cog):
         Request military aid from Alliance
         """
         if ctx.message.channel != self.BANK_REQUEST_CHANNEL:
-            await asyncio.sleep(0.5)
-            await ctx.message.delete()
+            await self_delete(ctx)
             await ctx.send(f"Please use {self.BANK_REQUEST_CHANNEL.mention}.")
             return
 

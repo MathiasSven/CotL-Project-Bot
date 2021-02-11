@@ -1,6 +1,6 @@
 import asyncio
 import os
-import string
+from concurrent import futures
 import random
 import sys
 
@@ -63,6 +63,10 @@ class MyBot(commands.Bot):
                 await ctx.send("You don't have the role necessary to run this command.")
             elif isinstance(exception, commands.MissingPermissions):
                 await ctx.send("You do not have permission to execute this command.")
+            elif isinstance(exception, commands.CommandNotFound):
+                print(f"ERROR -- {exception} -- ERROR")
+            elif isinstance(exception, futures.TimeoutError):
+                print(f"ERROR -- {exception} -- ERROR")
             else:
                 raise exception
         else:

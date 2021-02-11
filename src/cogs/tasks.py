@@ -31,7 +31,14 @@ class Tasks(commands.Cog):
     @tasks.loop(minutes=5)
     async def post_latest_aa_wars(self):
         async with aiohttp.request('GET', f"http://politicsandwar.com/api/wars/500&alliance_id={self.AA_ID}&key={self.PNW_API_KEY}") as response:
-            json_response = json.loads(await response.text())
+            try:
+                json_response = json.loads(await response.text())
+            except json.JSONDecodeError:
+                await self.bot.MILCON_BOT_CHANNEL.send(f"<@{self.bot.ADMIN_ID}> There was a problem.")
+                with open(f'{directory}/problem.json', 'w', encoding='utf-8') as f:
+                    f.write(await response.text())
+                    self.post_latest_aa_wars.stop()
+                    return
             active_wars = {"wars": [war for war in json_response["wars"] if war["status"] == "Active"]}
 
             try:
