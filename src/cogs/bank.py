@@ -93,7 +93,7 @@ class Bank(commands.Cog):
         if member == request_author and str(payload.emoji) == EMOJI[':x:']:
             await message.delete()
 
-        if not member.guild_permissions.manage_roles:
+        if not member.guild_permissions.manage_guild:
             return
         else:
             embed = discord.Embed(description=f"placeholder", colour=discord.Colour(self.bot.COLOUR))

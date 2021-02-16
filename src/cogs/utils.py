@@ -121,6 +121,10 @@ class Utils(commands.Cog):
 
         os.remove(chart_file_path)
 
+    # @commands.command(aliases=['rp'])
+    # async def report(self, ctx, reference):
+    #     pass
+
     # @commands.command(aliases=['mag', 'm', 'warinfo'])
     # async def magnify(self, ctx, nation_link):
     #     await self_delete(ctx)

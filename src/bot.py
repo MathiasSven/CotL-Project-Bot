@@ -131,7 +131,7 @@ class MyBot(commands.Bot):
                 captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
             except asyncio.TimeoutError:
                 await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
-                await self.moderation_log('captcha_timeout')
+                await self.moderation_log('captcha_timeout', member=member)
                 await member.kick(reason="Took too long to answer the captcha.")
                 break
             else:
