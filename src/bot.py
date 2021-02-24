@@ -76,23 +76,23 @@ class MyBot(commands.Bot):
         embed = None
         member = kwargs.get('member', None)
         if event == 'server_join':
-            embed = discord.Embed(description=f"{member.mention} **has joined the server.**", colour=discord.Colour(self.COLOUR))
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) has joined the server.**", colour=discord.Colour(self.COLOUR))
         elif event == 'left_server':
             roles = [role.mention for role in member.roles]
             del roles[0]
             if len(roles) == 0:
                 return
             roles_append = f"**Their roles were:** {' '.join(roles)}" if roles else "**They had no roles.**"
-            embed = discord.Embed(description=f"{member.mention} **has left the server.**\n"
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) has left the server.**\n"
                                               f"{roles_append}", colour=discord.Colour(self.COLOUR))
         elif event == 'captcha_timeout':
-            embed = discord.Embed(description=f"{member.mention} **took too long to answer the captcha.**", colour=discord.Colour(self.COLOUR))
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) took too long to answer the captcha.**", colour=discord.Colour(self.COLOUR))
         elif event == 'captcha_passed':
-            embed = discord.Embed(description=f"{member.mention} **has successfully answered the captcha.**", colour=discord.Colour(self.COLOUR))
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) has successfully answered the captcha.**", colour=discord.Colour(self.COLOUR))
         elif event == 'incorrect_captcha':
-            embed = discord.Embed(description=f"{member.mention} **incorrectly answered the captcha.**", colour=discord.Colour(self.COLOUR))
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) incorrectly answered the captcha.**", colour=discord.Colour(self.COLOUR))
         elif event == 'failed_captcha':
-            embed = discord.Embed(description=f"{member.mention} **failed the captcha too many times, they were kicked.**", colour=discord.Colour(self.COLOUR))
+            embed = discord.Embed(description=f"{member.mention} **({member.name}#{member.discriminator}) failed the captcha too many times, they were kicked.**", colour=discord.Colour(self.COLOUR))
         await self.MODERATION_LOGS_CHANNEL.send(embed=embed)
 
     async def on_member_join(self, member):
@@ -129,7 +129,7 @@ class MyBot(commands.Bot):
         for i in range(number_of_tries):
             try:
                 captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
-            except asyncio.TimeoutError:
+            except (asyncio.TimeoutError, futures.TimeoutError):
                 await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
                 await self.moderation_log('captcha_timeout', member=member)
                 await member.kick(reason="Took too long to answer the captcha.")
