@@ -173,6 +173,9 @@ class Management(commands.Cog):
                                                           f"{messages[2]}**", allowed_mentions=mentions)
 
                     elif nation_already_linked and du_already_linked:
+                        if nation_already_linked == du_already_linked:
+                            await ctx.send("**This user is already linked to that nation.**")
+                            return
                         if not ctx.author.guild_permissions.manage_guild:
                             await ctx.send(f"**{messages[0]}\n"
                                            f"{messages[1]}\n"
