@@ -9,6 +9,7 @@ import re
 from src.models import PnWNation
 from src.utils.checks import check_if_admin
 from src.config import Config
+from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 
 config = Config()
 
@@ -22,6 +23,14 @@ class Management(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Management Cog is loaded')
+
+    @staticmethod
+    def reaction_check_constructor(ctx, channel):
+        def reaction_check(reaction, user):
+            return (str(reaction.emoji) == EMOJI[':white_check_mark:'] or str(reaction.emoji) == EMOJI[':x:']) and \
+                   (user == ctx.message.author and reaction.message.channel == channel)
+
+        return reaction_check
 
     # Commands
     @commands.group(aliases=['fetch'])
@@ -121,8 +130,6 @@ class Management(commands.Cog):
     @commands.command(aliases=['connect'])
     @has_permissions(manage_roles=True)
     async def link(self, ctx, user="f", nation_link="s"):
-        await asyncio.sleep(0.5)
-        await ctx.message.delete()
         regex = re.compile(r'^<@!?(?P<id>\d*)>$')
         regex_match = regex.match(user)
         if regex.match(user) is not None:
@@ -138,15 +145,76 @@ class Management(commands.Cog):
                     'id': user_id,
                     'nation_id': nation_id,
                 }
-                async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
-                    json_response = await response.text()
-                    if response.status == 201:
-                        mentions = discord.AllowedMentions(users=False)
-                        await PnWNation.get_or_create(discord_user_id=user_id, nation_id=nation_id)
-                        await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
+                du_already_linked = await PnWNation.get_or_none(discord_user_id=user_id)
+                nation_already_linked = await PnWNation.get_or_none(nation_id=nation_id)
+
+                messages = [f"This nation is already linked to <@{nation_already_linked.discord_user_id if nation_already_linked else ''}>",
+                            f"This discord user is already linked to this Nation: https://politicsandwar.com/nation/id={du_already_linked.nation_id if du_already_linked else ''}",
+                            "Would you like to override the link?",
+                            "Missing permissions to override the link."]
+                mentions = discord.AllowedMentions(users=False)
+
+                if nation_already_linked or du_already_linked:
+                    override_message = None
+                    if nation_already_linked and not du_already_linked:
+                        if not ctx.author.guild_permissions.manage_guild:
+                            await ctx.send(f"**{messages[0]}\n"
+                                           f"{messages[3]}**", allowed_mentions=mentions)
+                            return
+                        override_message = await ctx.send(f"**{messages[0]}\n"
+                                                          f"{messages[2]}**", allowed_mentions=mentions)
+
+                    elif du_already_linked and not nation_already_linked:
+                        if not ctx.author.guild_permissions.manage_guild:
+                            await ctx.send(f"**{messages[1]}\n"
+                                           f"{messages[3]}**", allowed_mentions=mentions)
+                            return
+                        override_message = await ctx.send(f"**{messages[1]}\n"
+                                                          f"{messages[2]}**", allowed_mentions=mentions)
+
+                    elif nation_already_linked and du_already_linked:
+                        if not ctx.author.guild_permissions.manage_guild:
+                            await ctx.send(f"**{messages[0]}\n"
+                                           f"{messages[1]}\n"
+                                           f"{messages[3]}s", allowed_mentions=mentions)
+                            return
+                        override_message = await ctx.send(f"**{messages[0]}\n"
+                                                          f"{messages[1]}\n"
+                                                          f"{messages[2]}s**", allowed_mentions=mentions)
+
+                    await override_message.add_reaction(EMOJI[':white_check_mark:'])
+                    await override_message.add_reaction(EMOJI[':x:'])
+                    reaction_check = self.reaction_check_constructor(ctx, ctx.channel)
+                    try:
+                        reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+                    except asyncio.TimeoutError:
+                        await ctx.send('You took too long...')
                     else:
-                        await ctx.send(f"Link request was unsuccessful.")
-                    print(f"Link nation call: {json_response}")
+                        if reaction.emoji == EMOJI[':white_check_mark:']:
+                            async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                                json_response = await response.text()
+                                if response.status == 201:
+                                    if nation_already_linked:
+                                        await nation_already_linked.delete()
+                                    if du_already_linked:
+                                        await du_already_linked.delete()
+                                    mentions = discord.AllowedMentions(users=False)
+                                    await PnWNation.create(discord_user_id=user_id, nation_id=nation_id)
+                                    await ctx.send(f"Successfully linked nation to <@{user_id}>.", allowed_mentions=mentions)
+                                else:
+                                    await ctx.send(f"Link request was unsuccessful. Previous links remain intact.")
+                                print(f"Link nation call: {json_response}")
+                        else:
+                            await override_message.clear_reactions()
+                else:
+                    async with aiohttp.request('POST', f"{self.bot.API_URL}/link-nation", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
+                        json_response = await response.text()
+                        if response.status == 201:
+                            await PnWNation.create(discord_user_id=user_id, nation_id=nation_id)
+                            await ctx.send(f"Successfully linked nation to {user}.", allowed_mentions=mentions)
+                        else:
+                            await ctx.send(f"Link request was unsuccessful.")
+                        print(f"Link nation call: {json_response}")
             else:
                 await ctx.send("Invalid nation URL.")
         else:
