@@ -70,12 +70,13 @@ class MyBot(commands.Bot):
             elif isinstance(exception, futures.TimeoutError):
                 print(f"ERROR -- {exception} -- ERROR")
             else:
+                if self.IT_LOGS_CHANNEL_ID != 0:
+                    await self.IT_LOGS_CHANNEL.send(embed=exception)
                 raise exception
         else:
+            if self.IT_LOGS_CHANNEL_ID != 0:
+                await self.IT_LOGS_CHANNEL.send(embed=exception)
             await super(MyBot, self).on_command_error(ctx, exception)
-
-        if self.IT_LOGS_CHANNEL_ID != 0:
-            await self.IT_LOGS_CHANNEL.send(embed=exception)
 
     async def moderation_log(self, event: str, **kwargs):
         embed = None
