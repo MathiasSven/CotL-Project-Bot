@@ -34,7 +34,8 @@ class MyBot(commands.Bot):
         self.AUTO_ROLE_ID = int(config.get("server", "AUTO_ROLE_ID"))
         self.MILCON_BOT_CHANNEL_ID = int(config.get("tasks", "MILCON_BOT_CHANNEL_ID"))
         self.APPLICATION_CHANNEL_ID = int(config.get("server", "APPLICATION_CHANNEL_ID"))
-        self.MODERATION_LOGS_CHANNEL_ID = int(config.get("server", "MODERATION_LOGS_CHANNEL_ID"))
+        self.MODERATION_LOGS_CHANNEL_ID = int(config.get("logs", "MODERATION_LOGS_CHANNEL_ID"))
+        self.IT_LOGS_CHANNEL_ID = int(config.get("logs", "IT_LOGS_ID"))
         self.PUBLIC_CATEGORY_ID = int(config.get("server", "PUBLIC_CATEGORY_ID"))
         self.ADMIN_ID = int(config.get("server", "ADMIN_ID"))
         self.API_KEY = config.get("server", "API_KEY")
@@ -52,6 +53,7 @@ class MyBot(commands.Bot):
         self.SYSTEM_CHANNEL = self.GUILD.system_channel
         self.APPLICATION_CHANNEL = self.GUILD.get_channel(self.APPLICATION_CHANNEL_ID)
         self.MODERATION_LOGS_CHANNEL = self.GUILD.get_channel(self.MODERATION_LOGS_CHANNEL_ID)
+        self.IT_LOGS_CHANNEL = self.GUILD.get_channel(self.IT_LOGS_CHANNEL_ID) if self.IT_LOGS_CHANNEL_ID != 0 else None
         # self.PUBLIC_CATEGORY = self.GUILD.get_channel(self.PUBLIC_CATEGORY_ID)
 
         await self.change_presence(activity=activity)
@@ -71,6 +73,9 @@ class MyBot(commands.Bot):
                 raise exception
         else:
             await super(MyBot, self).on_command_error(ctx, exception)
+
+        if self.IT_LOGS_CHANNEL_ID != 0:
+            await self.IT_LOGS_CHANNEL.send(embed=exception)
 
     async def moderation_log(self, event: str, **kwargs):
         embed = None
