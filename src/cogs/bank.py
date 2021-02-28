@@ -471,7 +471,7 @@ class Bank(commands.Cog):
                     records = json_response['data']
                 except KeyError:
                     await deposit_dm.send(f"I was not able to fetch bank records, please contact a Gov member to inform about this issue.")
-                    return
+                    return 503
                 max_days_passed = 3
                 records = [record for record in records if
                            record['receiver_type'] == 2 and
@@ -480,7 +480,7 @@ class Bank(commands.Cog):
                            record['note'].lower() == "deposit"]
                 if len(records) == 0:
                     await deposit_dm.send(f'There are no deposits in the last {max_days_passed} days.')
-                    return
+                    return 404
                 records.sort(key=lambda d: datetime.strptime(d['tx_datetime'], '%Y-%m-%d %H:%M:%S'), reverse=True)
                 for i, record in list(enumerate(records)):
                     embed = discord.Embed(title="Is this your deposit?", colour=discord.Colour(self.bot.COLOUR))
@@ -503,7 +503,7 @@ class Bank(commands.Cog):
                         reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
                     except asyncio.TimeoutError:
                         await deposit_dm.send('You took too long...')
-                        return
+                        return 408
                     else:
                         if reaction.emoji == EMOJI[':white_check_mark:']:
                             chosen_record = record
