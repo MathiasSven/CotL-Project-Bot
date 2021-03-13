@@ -49,10 +49,13 @@ class Utils(commands.Cog):
 
     @commands.command(aliases=['nl', 'nation'])
     async def nation_link(self, ctx, user="f"):
-        parsed_input = InputParser(ctx)
-        user = await parsed_input.user_mention_id(user)
-        if user is None:
-            return
+        if user == "me":
+            user = ctx.message.author.id
+        else:
+            parsed_input = InputParser(ctx)
+            user = await parsed_input.user_mention_id(user)
+            if user is None:
+                return
 
         user_pnw = await PnWNation.get_or_none(discord_user_id=user)
         if user_pnw is None:
