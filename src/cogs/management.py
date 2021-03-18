@@ -3,7 +3,10 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
+from datetime import datetime
 import validators
+import csv
+import io
 import re
 
 from src.models import PnWNation
@@ -277,6 +280,23 @@ class Management(commands.Cog):
                     print(json_response)
                     print(self.bot.GUILD.get_member(link.discord_user_id).name)
                     await ctx.send(f"One of the links did not push correctly.")
+
+    @commands.command()
+    async def export_links(self, ctx):
+        nls_objects = await PnWNation.all()
+        csv_data = [(f"<@{nls_objects[i].discord_user_id}>",
+                     nls_objects[i].nation_id) for i in range(len(nls_objects))]
+        s = io.StringIO()
+        csv.writer(s).writerows(csv_data)
+
+        buf = io.BytesIO()
+
+        buf.write(s.getvalue().encode())
+        buf.seek(0)
+
+        buf.name = f'cotl_nls_{datetime.utcnow().strftime("%m_%d_%Y")}.csv'
+        file = discord.File(buf)
+        await ctx.send("", file=file)
 
     @purge.error
     @_from.error
