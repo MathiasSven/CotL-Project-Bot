@@ -117,7 +117,7 @@ class Bank(commands.Cog):
             if member != request_author:
                 await request_author.send(embed=embed)
 
-            await self.BANK_LOGS_CHANNEL.send(f"Aid request fulfilled by {member.mention} **Status: {status}**")
+            await self.BANK_LOGS_CHANNEL.send(f"Aid request fulfilled by {member.mention} **Status: {status}\n{message.jump_url}**")
             status = 'Y' if status == 'accepted' else 'N'
             data = {
                 'identifier': payload.message_id,
@@ -786,7 +786,7 @@ class Bank(commands.Cog):
                     await loan_dm.send(embed=loan_embed)
                 else:
                     await loan_dm.send('There was an issue with the request.')
-                await self.BANK_LOGS_CHANNEL.send(f"Loan requested by {ctx.message.author.mention} **Status: {response.status}**")
+                await self.BANK_LOGS_CHANNEL.send(f"Loan requested by {ctx.message.author.mention} **Status: {response.status} <@{self.bot.ADMIN_ID}>**")
 
     @commands.command()
     async def payback(self, ctx):
