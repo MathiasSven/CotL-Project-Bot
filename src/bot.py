@@ -71,11 +71,11 @@ class MyBot(commands.Bot):
                 print(f"ERROR -- {exception} -- ERROR")
             else:
                 if self.IT_LOGS_CHANNEL_ID != 0:
-                    await self.IT_LOGS_CHANNEL.send(embed=exception)
+                    await self.IT_LOGS_CHANNEL.send(content=exception)
                 raise exception
         else:
             if self.IT_LOGS_CHANNEL_ID != 0:
-                await self.IT_LOGS_CHANNEL.send(embed=exception)
+                await self.IT_LOGS_CHANNEL.send(content=exception)
             await super(MyBot, self).on_command_error(ctx, exception)
 
     async def moderation_log(self, event: str, **kwargs):
@@ -135,7 +135,7 @@ class MyBot(commands.Bot):
         for i in range(number_of_tries):
             try:
                 captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
-            except (asyncio.TimeoutError, futures.TimeoutError):
+            except (asyncio.TimeoutError, futures.TimeoutError, futures._base.TimeoutError):
                 await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
                 await self.moderation_log('captcha_timeout', member=member)
                 await member.kick(reason="Took too long to answer the captcha.")
