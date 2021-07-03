@@ -406,7 +406,7 @@ class Bank(commands.Cog):
 
             public_aid_embed = await self.BANK_REQUEST_CHANNEL.send(content=f"{ctx.message.author.mention}", embed=public_aid_embed)
 
-            resource_amount.append(('nationid', nation_object.nation_id))
+            resource_amount.append(('nationid', nation_id))
             resource_amount.append(('reason', reason))
             resource_amount.append(('identifier', public_aid_embed.id))
             data = dict(resource_amount)

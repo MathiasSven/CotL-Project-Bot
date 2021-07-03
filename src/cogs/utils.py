@@ -124,6 +124,64 @@ class Utils(commands.Cog):
 
         os.remove(chart_file_path)
 
+    @commands.command(aliases=['issuemmr'])
+    async def incorrect_mmr(self, ctx, mmr):
+        query = """
+        {
+          nations(alliance_id: 7452, first: 300, vmode: false) {
+            data {
+              id
+              alliance_position
+              cities {
+                barracks
+                factory
+                airforcebase
+                drydock        
+              }
+              soldiers
+              tanks
+              aircraft
+              ships
+            }
+          }
+        }
+        """
+        async with aiohttp.request('POST', f"https://api.politicsandwar.com/graphql?api_key={self.PNW_API_KEY}", json={'query': query}) as response:
+            data = await response.json()
+            imp_mmr_issue_list = []
+            mmr_imp_list = ["barracks", "factory", "airforcebase", "drydock"]
+            a_p_enum = {"NOALLIANCE": 0, "APPLICANT": 1, "MEMBER": 2, "OFFICER": 3, "HEIR": 4, "LEADER": 5}
+            for nation in data["data"]["nations"]["data"]:
+                if a_p_enum[nation["alliance_position"]] == 1:
+                    continue
+                imp_status = True
+                for city in nation["cities"]:
+                    for i, building_type in enumerate(city):
+                        if int(city[mmr_imp_list[i]]) != int(mmr[i]):
+                            imp_status = False
+                            break
+                    else:
+                        continue
+                    break
+                if not imp_status:
+                    imp_mmr_issue_list.append(nation["id"])
+
+            msg = "**Incorrect MMR Users:**\n"
+            for nation_id in imp_mmr_issue_list:
+                user_pnw = await PnWNation.get_or_none(nation_id=int(nation_id))
+                if user_pnw is None:
+                    msg += f"Nation of ID \"{nation_id}\" has no associated user in the Database.\n"
+                    # await ctx.send(f"Nation of ID \"{nation_id}\" has no associated user in the Database.")
+                else:
+                    msg += f"<@{user_pnw.discord_user_id}>\n"
+                    # mentions = discord.AllowedMentions(users=False)
+                    # await ctx.send(f"<@{user_pnw.discord_user_id}>", allowed_mentions=mentions)
+            if not imp_mmr_issue_list:
+                msg += "None"
+            mentions = discord.AllowedMentions(users=False)
+            await ctx.send(msg, allowed_mentions=mentions)
+
+
     # @commands.command(aliases=['rp'])
     # async def report(self, ctx, reference):
     #     pass
