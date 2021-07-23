@@ -870,11 +870,14 @@ class Bank(commands.Cog):
             if message.author.id == 265629298231214081 or message.author.id == 109066770224037888:
                 return
 
-            pending_requests = []
+            counter = 0
             async for sent_message in message.channel.history(limit=200):
                 if sent_message.author.id == message.author.id:
-                    await message.delete()
-                    return
+                    counter += 1
+
+            if counter == 2:
+                await message.delete()
+                return
 
             try:
                 int(message.content.replace(",", "").replace(".", ""))
