@@ -864,6 +864,25 @@ class Bank(commands.Cog):
                         else:
                             await payback_dm.send('There was an issue with the request.')
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.channel.id == 868231541401190411:
+            if message.author.id == 265629298231214081 or message.author.id == 109066770224037888:
+                return
+
+            pending_requests = []
+            async for sent_message in message.channel.history(limit=200):
+                if sent_message.author.id == message.author.id:
+                    await message.delete()
+                    return
+
+            try:
+                int(message.content.replace(",", "").replace(".", ""))
+            except (ValueError, TypeError):
+                await message.delete()
+                return
+
+
 
 def setup(bot):
     bot.add_cog(Bank(bot))
