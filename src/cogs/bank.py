@@ -461,7 +461,7 @@ class Bank(commands.Cog):
         embed.add_field(name="Request Links:", value=f"{_links}", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=['depo'])
     async def deposit(self, ctx):
         # noinspection PyShadowingNames
         async def check_transactions():
