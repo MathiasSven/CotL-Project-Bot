@@ -900,7 +900,7 @@ class Bank(commands.Cog):
                 closest_guesses.append((sent_message.author.id, float(a)))
             except (ValueError, TypeError):
                 continue
-        closest_guesses.sort(key=lambda x: abs(x[1] - 5))
+        closest_guesses.sort(key=lambda x: abs(x[1] - float(number)))
         prefix = (x for x in [f"🥇", f"🥈", f"🥉", "4th", "5th", "6th"])
         closest_embed = discord.Embed(title=f"The Nation Score Challenge!", colour=discord.Colour(self.bot.COLOUR), description="Closest guesses to our current alliance score.")
         closest_embed.add_field(name=f'Final AA Score: {int(number.replace(",", "").replace(".", ""))}',
