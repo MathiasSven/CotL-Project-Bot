@@ -901,8 +901,12 @@ class Bank(commands.Cog):
             except (ValueError, TypeError):
                 continue
         closest_guesses.sort(key=lambda x: abs(x[1] - 5))
+        prefix = (x for x in [f"🥇", f"🥈", f"🥉", "4th", "5th", "6th"])
         closest_embed = discord.Embed(title=f"The Nation Score Challenge!", colour=discord.Colour(self.bot.COLOUR), description="Closest guesses to our current alliance score.")
-        closest_embed.add_field(name=f'Final Score: {int(number.replace(",", "").replace(".", ""))}', value='\n'.join(map(lambda x: f'<@{x[0]}>: **{x[1]}**', f"{closest_guesses:,.2f}")))
+        closest_embed.add_field(name=f'Final AA Score: {int(number.replace(",", "").replace(".", ""))}',
+                                value='\n'.join(map(lambda x: f'{next(prefix)} <@{x[0]}>: **{x[1]:,.2f}**', closest_guesses[0:6])))
+
+        await ctx.send(embed=closest_embed)
 
 
 def setup(bot):
