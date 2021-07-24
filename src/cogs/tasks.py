@@ -112,12 +112,12 @@ class Tasks(commands.Cog):
                 _user_pnw = await PnWNation.get_or_none(nation_id=attacker_nation['nationid'])
                 embed = CreateEmbed(war=war, main_nation=attacker_nation, attacker=True, rival_nation=defender_nation, cog_instance=self, user_pnw=_user_pnw).result
                 embed.set_thumbnail(url="https://images.emojiterra.com/twitter/v13.0/512px/2694.png")
+                await self.bot.OFFENSIVE_WARS_CHANNEL.send(embed=embed)
             else:
                 _user_pnw = await PnWNation.get_or_none(nation_id=defender_nation['nationid'])
                 embed = CreateEmbed(war=war, main_nation=defender_nation, attacker=False, rival_nation=attacker_nation, cog_instance=self, user_pnw=_user_pnw).result
                 embed.set_thumbnail(url="https://images.emojiterra.com/twitter/v13.0/512px/1f6e1.png")
-
-            await self.bot.MILCON_BOT_CHANNEL.send(embed=embed)
+                await self.bot.DEFENSIVE_WARS_CHANNEL.send(embed=embed)
 
     # noinspection PyAttributeOutsideInit
     @post_latest_aa_wars.before_loop
