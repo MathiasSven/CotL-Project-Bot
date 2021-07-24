@@ -21,7 +21,7 @@ config = configparser.ConfigParser()
 config.read(f"{os.path.join(directory, os.pardir)}/config.ini")
 
 intents = discord.Intents.all()
-activity = discord.Activity(name=f'over the children', type=discord.ActivityType.watching)
+activity = discord.Activity(name=f'the end of the world', type=discord.ActivityType.watching)
 
 
 # noinspection PyUnusedLocal
@@ -163,18 +163,18 @@ class MyBot(commands.Bot):
     async def verified_new_user(self, member):
         mentions = discord.AllowedMentions(users=True)
 
-        embed = discord.Embed(title="Children of the Light", colour=discord.Colour(self.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
-                              description=f"**Salutations** {member.mention},\nWelcome to Children of the Light! If you wish to Join please follow the instructions in {self.APPLICATION_CHANNEL.mention}")
+        embed = discord.Embed(title="Cataclysm", colour=discord.Colour(self.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
+                              description=f"**Salutations** {member.mention},\nWelcome to Cataclysm! If you wish to Join please follow the instructions in {self.APPLICATION_CHANNEL.mention}")
 
-        embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
+        # embed.set_image(url="https://images.cotl.pw/children-of-the-light.png")
 
         try:
             embed.add_field(name="​",
-                            value=f"For any of your FA concerns please speak with {self.GUILD.get_member(364254409388982272).mention}.",
+                            value=f"For any of your FA concerns please speak with {self.GUILD.get_member(211389941475835904).mention}.",
                             inline=False)
         except AttributeError:
             pass
-        embed.add_field(name="​", value="**Praise be! For the light has shined upon you!**", inline=False)
+        # embed.add_field(name="​", value="**Praise be! For the light has shined upon you!**", inline=False)
 
         await asyncio.sleep(1)
         welcome_embed = await self.SYSTEM_CHANNEL.send(content=f"{member.mention}", embed=embed, allowed_mentions=mentions)
