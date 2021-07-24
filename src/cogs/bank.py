@@ -867,7 +867,7 @@ class Bank(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.channel.id == 868231541401190411:
-            if message.author.id == 265629298231214081 or message.author.id == 109066770224037888:
+            if message.author.id == 265629298231214081 or message.author.id == 109066770224037888 or message.author.bot:
                 return
 
             counter = 0
@@ -885,6 +885,24 @@ class Bank(commands.Cog):
                 await message.delete()
                 return
 
+    @commands.command()
+    async def closest(self, ctx, number):
+        await self_delete(ctx)
+        closest_guesses = []
+        async for sent_message in ctx.channel.history(limit=200):
+            try:
+                a = sent_message.content
+                if re.match(r"^\d{3}\.\d{3}", a):
+                    a.replace(".", "")
+                if re.match(r"^\d{4,},\d{1,3}", a):
+                    a.replace(",", ".")
+                a.replace(",", "")
+                closest_guesses.append((sent_message.author.id, float(a)))
+            except (ValueError, TypeError):
+                continue
+        closest_guesses.sort(key=lambda x: abs(x[1] - 5))
+        closest_embed = discord.Embed(title=f"The Nation Score Challenge!", colour=discord.Colour(self.bot.COLOUR), description="Closest guesses to our current alliance score.")
+        closest_embed.add_field(name=f'Final Score: {int(number.replace(",", "").replace(".", ""))}', value='\n'.join(map(lambda x: f'<@{x[0]}>: **{x[1]}**', f"{closest_guesses:,.2f}")))
 
 
 def setup(bot):
