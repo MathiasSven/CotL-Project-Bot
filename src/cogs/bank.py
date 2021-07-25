@@ -119,7 +119,7 @@ class Bank(commands.Cog):
             if member != request_author:
                 await request_author.send(embed=embed)
 
-            await self.BANK_LOGS_CHANNEL.send(f"Aid request fulfilled by {member.mention} **Status: {status}\n{message.jump_url}**")
+            await self.BANK_LOGS_CHANNEL.send(f"Aid request fulfilled by {member.mention} **Status: {status}\n<{message.jump_url}>**")
             status = 'Y' if status == 'accepted' else 'N'
             data = {
                 'identifier': payload.message_id,
@@ -426,7 +426,7 @@ class Bank(commands.Cog):
             embed = discord.Embed(description="**Successfully created aid request**", colour=discord.Colour(self.bot.COLOUR))
             await aid_dm.send(embed=embed)
             await self.BANK_LOGS_CHANNEL.send(f"Aid requested by {ctx.message.author.mention}\n"
-                                              f"{public_aid_embed.jump_url}")
+                                              f"<{public_aid_embed.jump_url}>")
 
     @commands.command()
     @has_permissions(manage_roles=True)
