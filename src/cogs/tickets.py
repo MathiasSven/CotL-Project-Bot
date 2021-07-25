@@ -66,7 +66,9 @@ class Tickets(commands.Cog):
 
         # noinspection PyShadowingNames
         def reaction_check(payload):
-            return not payload.member.bot and payload.message_id == application_message.id
+            if payload.guild_id:
+                return not payload.member.bot and payload.message_id == application_message.id
+            return False
 
         while True:
             payload = await self.bot.wait_for('raw_reaction_add', check=reaction_check)
