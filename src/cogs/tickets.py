@@ -74,9 +74,10 @@ class Tickets(commands.Cog):
             payload = await self.bot.wait_for('raw_reaction_add', check=reaction_check)
             if str(payload.emoji) == EMOJI[':clipboard:']:
                 await self.create_interviewer_embed(payload.member)
-                await payload.member.send(embed=discord.Embed(
-                    description=f"**Thank you for applying to Cataclysm! One of our interviewers will message whenever they are available**",
-                    colour=discord.Colour(self.bot.COLOUR)))
+                embed = discord.Embed(title="Cataclysm", colour=discord.Colour(self.bot.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
+                                      description=f"**Thank you for applying to Cataclysm!**\n"
+                                                  f"One of our interviewers will message whenever they are available")
+                await payload.member.send(embed=embed)
 
             message = await self.APPLICATION_CHANNEL.fetch_message(payload.message_id)
             await message.remove_reaction(payload.emoji, payload.member)
