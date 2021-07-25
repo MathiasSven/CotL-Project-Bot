@@ -74,6 +74,9 @@ class Tickets(commands.Cog):
             payload = await self.bot.wait_for('raw_reaction_add', check=reaction_check)
             if str(payload.emoji) == EMOJI[':clipboard:']:
                 await self.create_interviewer_embed(payload.member)
+                await payload.member.send(embed=discord.Embed(
+                    description=f"**Thank you for applying to Cataclysm! One of our interviewers will message whenever they are available**",
+                    colour=discord.Colour(self.bot.COLOUR)))
 
             message = await self.APPLICATION_CHANNEL.fetch_message(payload.message_id)
             await message.remove_reaction(payload.emoji, payload.member)
@@ -107,7 +110,7 @@ class Tickets(commands.Cog):
             await message.clear_reactions()
             interviewer_embed.timestamp = datetime.datetime.utcnow()
             interviewer_embed.set_footer(text=f"Assigned:")
-            interviewer_embed.set_field_at(index=2, name=f"Assigned To:", value=member.mention)
+            interviewer_embed.set_field_at(index=1, name=f"Assigned To:", value=member.mention)
             await message.edit(embed=interviewer_embed)
         else:
             await message.remove_reaction(payload.emoji, payload.member)
