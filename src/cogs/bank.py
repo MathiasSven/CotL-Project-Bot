@@ -127,7 +127,7 @@ class Bank(commands.Cog):
             }
             async with aiohttp.request('PUT', f"{self.bot.API_URL}/aid-update", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                 if response.status != 202:
-                    await self.BANK_LOGS_CHANNEL.send(f"There was a problem updating the aid request on the database {self.BANK_ROLE.mention}**")
+                    await self.BANK_LOGS_CHANNEL.send(f"There was a problem updating the aid request on the database <@{self.bot.ADMIN_ID}>**")
 
     async def resource_getter(self, user, channel, _type, getter_message):
 
@@ -788,7 +788,7 @@ class Bank(commands.Cog):
                     await loan_dm.send(embed=loan_embed)
                 else:
                     await loan_dm.send('There was an issue with the request.')
-                await self.BANK_LOGS_CHANNEL.send(f"Loan requested by {ctx.message.author.mention} **Status: {response.status} <@{self.bot.ADMIN_ID}>**")
+                await self.BANK_LOGS_CHANNEL.send(f"Loan requested by {ctx.message.author.mention} **Status: {response.status} {self.BANK_ROLE.mention}**")
 
     @commands.command()
     async def payback(self, ctx):
