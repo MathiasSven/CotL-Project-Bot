@@ -12,6 +12,7 @@ from captcha.image import ImageCaptcha
 
 import discord
 from discord.ext import commands
+import traceback
 
 directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(directory))
@@ -61,6 +62,12 @@ class MyBot(commands.Bot):
         await self.change_presence(activity=activity)
         print("Bot is Ready!")
 
+    async def on_error(self, event, *args, **kwargs):
+        if self.IT_LOGS_CHANNEL_ID != 0:
+            await self.IT_LOGS_CHANNEL.send(content=f"<@{self.ADMIN_ID}>```py\nIgnoring exception in **{event}**\n{traceback.format_exc(chain=False)}```")
+        else:
+            await super(MyBot, self).on_error(event, *args, **kwargs)
+
     async def on_command_error(self, ctx, exception):
         if isinstance(exception, commands.errors.CommandError):
             if isinstance(exception, commands.errors.MissingRole):
@@ -77,7 +84,7 @@ class MyBot(commands.Bot):
                 raise exception
         else:
             if self.IT_LOGS_CHANNEL_ID != 0:
-                await self.IT_LOGS_CHANNEL.send(content=exception)
+                await self.IT_LOGS_CHANNEL.send(content=exception.__traceback__)
             await super(MyBot, self).on_command_error(ctx, exception)
 
     async def moderation_log(self, event: str, **kwargs):
