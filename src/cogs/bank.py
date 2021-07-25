@@ -26,6 +26,7 @@ class Bank(commands.Cog):
         self.PNW_API_KEY = config.get("server", "PNW_API_KEY")
         self.BANK_REQUEST_ID = int(config.get("server", "BANK_REQUEST_ID"))
         self.BANK_LOGS_ID = int(config.get("logs", "BANK_LOGS_ID"))
+        self.BANK_ROLE_ID = int(config.get("bank", "BANK_ROLE_ID"))
         bot.loop.create_task(self.startup())
 
     # noinspection PyAttributeOutsideInit
@@ -49,6 +50,7 @@ class Bank(commands.Cog):
         self.GUILD = self.bot.get_guild(self.bot.GUILD_ID)
         self.BANK_REQUEST_CHANNEL = self.GUILD.get_channel(self.BANK_REQUEST_ID)
         self.BANK_LOGS_CHANNEL = self.GUILD.get_channel(self.BANK_LOGS_ID)
+        self.BANK_ROLE = self.GUILD.get_role(self.BANK_ROLE_ID)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -125,7 +127,7 @@ class Bank(commands.Cog):
             }
             async with aiohttp.request('PUT', f"{self.bot.API_URL}/aid-update", json=data, headers={'x-api-key': self.bot.API_KEY}) as response:
                 if response.status != 202:
-                    await self.BANK_LOGS_CHANNEL.send(f"There was a problem updating the aid request on the database <@{self.bot.ADMIN_ID}>**")
+                    await self.BANK_LOGS_CHANNEL.send(f"There was a problem updating the aid request on the database {self.BANK_ROLE.mention}**")
 
     async def resource_getter(self, user, channel, _type, getter_message):
 
@@ -649,7 +651,7 @@ class Bank(commands.Cog):
                     await withdraw_dm.send('There was an issue with the withdraw request.')
                     return
                 await withdraw_dm.send(embed=withdrew_embed)
-                await self.BANK_LOGS_CHANNEL.send(f"Withdraw requested by {ctx.message.author.mention} **Status: {response.status} <@{self.bot.ADMIN_ID}>**")
+                await self.BANK_LOGS_CHANNEL.send(f"Withdraw requested by {ctx.message.author.mention} **Status: {response.status} {self.BANK_ROLE.mention}**")
 
     @commands.command(aliases=['deposits'])
     async def holdings(self, ctx):
