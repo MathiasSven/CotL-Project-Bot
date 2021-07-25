@@ -34,7 +34,7 @@ class Tasks(commands.Cog):
             try:
                 json_response = json.loads(await response.text())
             except json.JSONDecodeError:
-                await self.bot.MILCON_BOT_CHANNEL.send(f"<@{self.bot.ADMIN_ID}> There was a problem.")
+                await self.bot.IT_LOGS_CHANNEL.send(f"<@{self.bot.ADMIN_ID}> There was a problem with the off/def war task.")
                 with open(f'{directory}/problem.json', 'w', encoding='utf-8') as f:
                     f.write(await response.text())
                     self.post_latest_aa_wars.stop()
