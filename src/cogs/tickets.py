@@ -43,7 +43,7 @@ class Tickets(commands.Cog):
                         value=f"Unassigned",
                         inline=True)
 
-        embed.set_footer(text="Last Event")
+        embed.set_footer(text="Applied:")
         embed.timestamp = datetime.datetime.utcnow()
 
         message = await self.INTERVIEWER_CHANNEL.send(self.INTERVIEWER_ROLE.mention, embed=embed)
@@ -104,8 +104,8 @@ class Tickets(commands.Cog):
         if str(payload.emoji) == EMOJI[':white_check_mark:']:
             await message.clear_reactions()
             interviewer_embed.timestamp = datetime.datetime.utcnow()
-            interviewer_embed.description = ""
-            interviewer_embed.set_field_at(index=1, name=f"Assigned To:", value=member.mention)
+            interviewer_embed.set_footer(text=f"Assigned:")
+            interviewer_embed.set_field_at(index=2, name=f"Assigned To:", value=member.mention)
             await message.edit(embed=interviewer_embed)
         else:
             await message.remove_reaction(payload.emoji, payload.member)
