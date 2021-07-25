@@ -76,7 +76,7 @@ class Tickets(commands.Cog):
                 await self.create_interviewer_embed(payload.member)
                 embed = discord.Embed(title="Cataclysm", colour=discord.Colour(self.bot.COLOUR), url="https://politicsandwar.com/alliance/id=7452",
                                       description=f"**Thank you for applying to Cataclysm!**\n"
-                                                  f"One of our interviewers will message whenever they are available")
+                                                  f"One of our interviewers will message you whenever they are available.")
                 await payload.member.send(embed=embed)
 
             message = await self.APPLICATION_CHANNEL.fetch_message(payload.message_id)
@@ -104,8 +104,6 @@ class Tickets(commands.Cog):
         if "New Applicant" not in interviewer_embed.title or not any((reaction.me for reaction in message.reactions)):
             await message.remove_reaction(payload.emoji, payload.member)
             return
-
-        print(message.reactions)
 
         if str(payload.emoji) == EMOJI[':white_check_mark:']:
             await message.clear_reactions()
