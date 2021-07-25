@@ -866,50 +866,6 @@ class Bank(commands.Cog):
                         else:
                             await payback_dm.send('There was an issue with the request.')
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.channel.id == 868231541401190411:
-            if message.author.id == 265629298231214081 or message.author.id == 109066770224037888 or message.author.bot:
-                return
-
-            counter = 0
-            async for sent_message in message.channel.history(limit=200):
-                if sent_message.author.id == message.author.id:
-                    counter += 1
-
-            if counter == 2:
-                await message.delete()
-                return
-
-            try:
-                int(message.content.replace(",", "").replace(".", ""))
-            except (ValueError, TypeError):
-                await message.delete()
-                return
-
-    @commands.command()
-    async def closest(self, ctx, number):
-        await self_delete(ctx)
-        closest_guesses = []
-        async for sent_message in ctx.channel.history(limit=200):
-            try:
-                a = sent_message.content
-                if re.match(r"^\d{3}\.\d{3}", a):
-                    a.replace(".", "")
-                if re.match(r"^\d{4,},\d{1,3}", a):
-                    a.replace(",", ".")
-                a.replace(",", "")
-                closest_guesses.append((sent_message.author.id, float(a)))
-            except (ValueError, TypeError):
-                continue
-        closest_guesses.sort(key=lambda x: abs(x[1] - float(number)))
-        prefix = (x for x in [f"🥇", f"🥈", f"🥉", "4th", "5th", "6th"])
-        closest_embed = discord.Embed(title=f"The Nation Score Challenge!", colour=discord.Colour(self.bot.COLOUR), description="Closest guesses to our current alliance score.")
-        closest_embed.add_field(name=f'Final AA Score: {int(number.replace(",", "").replace(".", ""))}',
-                                value='\n'.join(map(lambda x: f'{next(prefix)} <@{x[0]}>: **{x[1]:,.2f}**', closest_guesses[0:6])))
-
-        await ctx.send(embed=closest_embed)
-
 
 def setup(bot):
     bot.add_cog(Bank(bot))
