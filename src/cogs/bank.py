@@ -869,7 +869,6 @@ class Bank(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.content.startswith("!depo"):
-            await asyncio.sleep(5)
             await message.delete()
             await message.channel.send(f"{message.author.mention} You big dumb dumb.")
         else:
