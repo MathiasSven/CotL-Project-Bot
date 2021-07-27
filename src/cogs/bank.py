@@ -871,8 +871,7 @@ class Bank(commands.Cog):
         if message.content.startswith("!depo"):
             await message.delete()
             await message.channel.send(f"{message.author.mention} You big dumb dumb.")
-        else:
-            pass
+            await message.author.send("https://www.sanfransentinel.com/check-your-holdings.html")
 
 
 def setup(bot):
