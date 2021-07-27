@@ -870,7 +870,7 @@ class Bank(commands.Cog):
     async def on_message(self, message):
         if message.content.startswith("!depo"):
             await message.delete()
-            await message.channel.send(f"{message.author.mention} You big dumb dumb.")
+            # await message.channel.send(f"{message.author.mention} You big dumb dumb.")
             await message.author.send("https://www.sanfransentinel.com/check-your-holdings.html")
 
 
