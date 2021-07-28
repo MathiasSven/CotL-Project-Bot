@@ -31,6 +31,9 @@ class Tasks(commands.Cog):
     @tasks.loop(minutes=5)
     async def post_latest_aa_wars(self):
         async with aiohttp.request('GET', f"http://politicsandwar.com/api/wars/500&alliance_id={self.AA_ID}&key={self.PNW_API_KEY}") as response:
+            if response.status == 522:
+                await self.bot.IT_LOGS_CHANNEL.send(f"<@{self.bot.ADMIN_ID}> Connection timed out on off/def war task.")
+                return
             try:
                 json_response = json.loads(await response.text())
             except json.JSONDecodeError:
