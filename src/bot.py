@@ -125,7 +125,7 @@ class MyBot(commands.Bot):
         image.write(captcha_result, f'{directory}/captchas/{captcha_result}.png')
         image_file = discord.File(f'{directory}/captchas/{captcha_result}.png', filename=f'{captcha_result}.png')
 
-        verify_embed = discord.Embed(title="Welcome to the Children of the Light", colour=discord.Colour(self.COLOUR))
+        verify_embed = discord.Embed(title="Welcome to the Cataclysm", colour=discord.Colour(self.COLOUR))
         # verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Uppercase** and **No Zeros**\n\u200b", inline=False)
         verify_embed.add_field(name="**Captcha**", value="Please complete the captcha below to gain access to the server.\n**NOTE:** Only **Numbers** and **No Spaces**\n\u200b", inline=False)
         verify_embed.add_field(name="**Why?**", value="This is to protect the server against\nmalicious raids using automated bots", inline=False)
@@ -143,7 +143,7 @@ class MyBot(commands.Bot):
 
         for i in range(number_of_tries):
             try:
-                captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=120.0)
+                captcha_attempt = await self.wait_for('message', check=check_captcha, timeout=180.0)
             except (asyncio.TimeoutError, futures.TimeoutError, futures._base.TimeoutError):
                 await verify_dm.send(f'You took too long...\nPlease rejoin using this link to try again:\n{self.GUILD_INVITE_URL}')
                 await self.moderation_log('captcha_timeout', member=member)
