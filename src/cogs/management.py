@@ -314,7 +314,7 @@ class Management(commands.Cog):
 
         for member in channel.members:
             if member.bot:
-                pass
+                continue
             user_pnw = await PnWNation.get_or_none(discord_user_id=member.id)
             if user_pnw is not None:
                 if list(filter(lambda nation: (nation['nationid'] == user_pnw.nation_id) and nation['allianceposition'] >= min_tier, nations)):
