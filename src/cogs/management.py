@@ -298,6 +298,46 @@ class Management(commands.Cog):
         file = discord.File(buf)
         await ctx.send("", file=file)
 
+    @commands.command()
+    # @has_permissions(manage_roles=True)
+    async def opsec(self, ctx, channel: discord.TextChannel, min_tier=1):
+        await asyncio.sleep(0.5)
+        await ctx.message.delete()
+        async with aiohttp.request('GET', f"http://politicsandwar.com/api/alliance-members/?allianceid=7452&key={self.PNW_API_KEY}") as response:
+            json_response = await response.json()
+            try:
+                nations = json_response['nations']
+            except KeyError:
+                await ctx.send("Something went wrong.")
+                return
+
+        rank_not_matched = []
+        not_linked_discord = []
+
+        for member in channel.members:
+            user_pnw = await PnWNation.get_or_none(discord_user_id=member.id)
+            if user_pnw is not None:
+                if list(filter(lambda nation: (nation['nationid'] == user_pnw.nation_id) and nation['allianceposition'] >= min_tier, nations)):
+                    pass
+                else:
+                    rank_not_matched.append(member)
+            else:
+                not_linked_discord.append(member)
+
+        in_val = "\n".join([member.mention for member in rank_not_matched]) if rank_not_matched else "None"
+        not_val = "\n".join([member.mention for member in not_linked_discord]) if not_linked_discord else "None"
+
+        embed = discord.Embed(title="Opsec Lens", colour=discord.Colour(self.bot.COLOUR))
+        embed.add_field(name="Inappropriate Rank/Alliance:",
+                        value=in_val,
+                        inline=False)
+
+        embed.add_field(name="**Not Linked:**",
+                        value=not_val,
+                        inline=False)
+
+        await ctx.send(embed=embed)
+
     @purge.error
     @_from.error
     @till.error
