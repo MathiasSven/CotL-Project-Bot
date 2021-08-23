@@ -301,8 +301,6 @@ class Management(commands.Cog):
     @commands.command()
     # @has_permissions(manage_roles=True)
     async def opsec(self, ctx, channel: discord.TextChannel, min_tier=1):
-        await asyncio.sleep(0.5)
-        await ctx.message.delete()
         async with aiohttp.request('GET', f"http://politicsandwar.com/api/alliance-members/?allianceid=7452&key={self.PNW_API_KEY}") as response:
             json_response = await response.json()
             try:
@@ -315,6 +313,8 @@ class Management(commands.Cog):
         not_linked_discord = []
 
         for member in channel.members:
+            if member.bot:
+                pass
             user_pnw = await PnWNation.get_or_none(discord_user_id=member.id)
             if user_pnw is not None:
                 if list(filter(lambda nation: (nation['nationid'] == user_pnw.nation_id) and nation['allianceposition'] >= min_tier, nations)):
