@@ -872,7 +872,12 @@ class Bank(commands.Cog):
             await message.delete()
             # await message.channel.send(f"{message.author.mention} You big dumb dumb.")
             await message.author.send("https://www.sanfransentinel.com/check-your-holdings.html")
+            return
 
+        if re.findall(pattern=r"(canada)|(.anada)|(c.nada)|(ca.ada)|(can.da)|(cana.a)|(canad.)", string=message.content, flags=re.MULTILINE | re.IGNORECASE):
+            if message.guild:
+                await asyncio.sleep(0.5)
+                await message.delete()
 
 def setup(bot):
     bot.add_cog(Bank(bot))
