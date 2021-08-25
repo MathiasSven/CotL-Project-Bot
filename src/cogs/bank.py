@@ -874,7 +874,6 @@ class Bank(commands.Cog):
             await message.author.send("https://www.sanfransentinel.com/check-your-holdings.html")
             return
 
-        print(message.content)
         if re.findall(pattern=r"(canada)|(.anada)|(c.nada)|(ca.ada)|(can.da)|(cana.a)|(canad.)|(mounties)|(maple)|(🇨🇦)", string=message.content, flags=re.MULTILINE | re.IGNORECASE):
             if message.guild:
                 await asyncio.sleep(0.5)
