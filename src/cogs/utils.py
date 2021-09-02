@@ -67,14 +67,12 @@ class Utils(commands.Cog):
                 user = await parsed_input.user_mention_id(user)
                 if user is None:
                     return
-
         elif isinstance(ctx, SlashContext):
             if user is None:
                 user = ctx.author_id
             else:
                 user = user.id
                 kwargs = {'hidden': True}
-
         elif isinstance(ctx, MenuContext):
             user = ctx.target_id
             kwargs = {'hidden': True}
@@ -108,20 +106,44 @@ class Utils(commands.Cog):
     async def context_nation_link(self, ctx: MenuContext):
         await self.generic_nation_link(ctx)
 
-    @commands.command(aliases=['du', 'au'])
-    async def associated_user(self, ctx, nation_id="f"):
-        try:
-            int(nation_id)
-        except ValueError:
-            await ctx.send("Invalid nation ID.")
-            return
+    @staticmethod
+    async def generic_associated_user(ctx: Union[commands.Context, SlashContext], nation_id):
+        kwargs = {}
+
+        if isinstance(ctx, commands.Context):
+            try:
+                int(nation_id)
+            except ValueError:
+                await ctx.send("Invalid nation ID.")
+                return
+        elif isinstance(ctx, SlashContext):
+            kwargs = {'hidden': True}
+
         user_pnw = await PnWNation.get_or_none(nation_id=nation_id)
         if user_pnw is None:
-            await ctx.send("Nation with given ID has no associated user in the Database.")
+            await ctx.send("Nation with given ID has no associated user in the Database.", **kwargs)
             return
         else:
             mentions = discord.AllowedMentions(users=False)
-            await ctx.send(f"<@{user_pnw.discord_user_id}>", allowed_mentions=mentions)
+            await ctx.send(f"<@{user_pnw.discord_user_id}>", allowed_mentions=mentions, **kwargs)
+
+    @commands.command(name="associated_user", aliases=['du', 'au'])
+    async def normal_associated_user(self, ctx, nation_id="f"):
+        await self.generic_associated_user(ctx, nation_id)
+
+    @cog_slash(name="associated_user",
+               description="Returns a nation's discord user if they are linked.",
+               guild_ids=guild_ids,
+               options=[
+                   create_option(
+                       name="nation_id",
+                       description="The ID of the nation to return a discord user.",
+                       option_type=SlashCommandOptionType.INTEGER,
+                       required=True
+                   )
+               ])
+    async def slash_associated_user(self, ctx: SlashContext, nation_id: int):
+        await self.generic_associated_user(ctx, nation_id)
 
     @commands.command(aliases=['mili'])
     async def militarization(self, ctx, alliance_id=None):
