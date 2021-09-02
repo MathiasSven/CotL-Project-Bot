@@ -11,8 +11,15 @@ from src.config import Config
 from src.utils.inputparse import InputParser
 from src.utils.selfdelete import self_delete
 
+from discord_slash.cog_ext import cog_context_menu
+from discord_slash.context import MenuContext
+from discord_slash.model import ContextMenuType
+
+
 directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 config = Config()
+
+guild_ids = [int(config.get("server", "GUILD_ID"))]
 
 
 class Utils(commands.Cog):
@@ -64,10 +71,19 @@ class Utils(commands.Cog):
         else:
             await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}")
 
+    @cog_context_menu(target=ContextMenuType.USER, name="Nation Link", guild_ids=guild_ids)
+    async def nation_link(self, ctx: MenuContext):
+        user_pnw = await PnWNation.get_or_none(discord_user_id=ctx.target_id)
+        if user_pnw is None:
+            await ctx.send("User with the given ID is not in the Database.", hidden=True)
+            return
+        else:
+            await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}", hidden=True)
+
     @commands.command(aliases=['du', 'au'])
     async def associated_user(self, ctx, nation_id="f"):
         try:
-            user = int(nation_id)
+            int(nation_id)
         except ValueError:
             await ctx.send("Invalid nation ID.")
             return
@@ -106,7 +122,7 @@ class Utils(commands.Cog):
         async with aiohttp.request('GET', f"http://politicsandwar.com/api/alliance/id={alliance_id}&key={self.PNW_API_KEY}") as response:
             json_response = await response.json()
             try:
-                success = json_response['success']
+                json_response['success']
             except KeyError:
                 await ctx.send("Something went wrong")
                 return

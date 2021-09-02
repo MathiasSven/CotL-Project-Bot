@@ -14,6 +14,8 @@ import discord
 from discord.ext import commands
 import traceback
 
+from discord_slash import SlashCommand
+
 directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(directory))
 from src.utils import selfdelete
@@ -299,22 +301,23 @@ async def start_database():
     await tortoise.Tortoise.generate_schemas()
 
 
-instance = MyBot()
+bot_instance = MyBot()
+slash_instance = SlashCommand(bot_instance, sync_commands=True, sync_on_cog_reload=True)
 
 
-@instance.command()
+@bot_instance.command()
 async def reload(ctx, extension=None):
     await ctx.message.delete()
     if extension is None:
         await ctx.send(f"Must specify extension to reload")
         return None
-    instance.unload_extension(f'src.cogs.{extension}')
-    instance.load_extension(f'src.cogs.{extension}')
+    bot_instance.unload_extension(f'src.cogs.{extension}')
+    bot_instance.load_extension(f'src.cogs.{extension}')
     await ctx.send(f"Successfully reloaded {extension} ")
 
 
 for filename in os.listdir(f'{directory}/cogs'):
     if filename.endswith('.py') and not filename.startswith('__init__'):
-        instance.load_extension(f'src.cogs.{filename[:-3]}')
+        bot_instance.load_extension(f'src.cogs.{filename[:-3]}')
 
-instance.run_bot()
+bot_instance.run_bot()

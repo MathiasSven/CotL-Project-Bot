@@ -6,3 +6,4 @@ captcha>=0.3
 emoji>=0.6.0
 tortoise-orm==0.16.18
 aiofiles>=0.6.0
+discord-py-interactions==3.0.2
