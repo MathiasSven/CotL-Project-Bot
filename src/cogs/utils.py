@@ -1,6 +1,7 @@
 import os
 import aiohttp
 import aiofiles
+from typing import Union
 from emoji import EMOJI_ALIAS_UNICODE as EMOJI
 
 import discord
@@ -11,10 +12,10 @@ from src.config import Config
 from src.utils.inputparse import InputParser
 from src.utils.selfdelete import self_delete
 
-from discord_slash.cog_ext import cog_context_menu
-from discord_slash.context import MenuContext
-from discord_slash.model import ContextMenuType
-
+from discord_slash.cog_ext import cog_context_menu, cog_slash
+from discord_slash.context import MenuContext, SlashContext
+from discord_slash.model import ContextMenuType, SlashCommandOptionType
+from discord_slash.utils.manage_commands import create_option
 
 directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 config = Config()
@@ -54,31 +55,58 @@ class Utils(commands.Cog):
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
         pass
 
-    @commands.command(aliases=['nl', 'nation'])
-    async def nation_link(self, ctx, user="f"):
-        if user == "me":
-            user = ctx.message.author.id
-        else:
-            parsed_input = InputParser(ctx)
-            user = await parsed_input.user_mention_id(user)
+    @staticmethod
+    async def generic_nation_link(ctx: Union[commands.Context, SlashContext, MenuContext], user: Union[discord.Member, str, None] = None):
+        kwargs = {}
+
+        if isinstance(ctx, commands.Context):
+            if user == "me":
+                user = ctx.message.author.id
+            else:
+                parsed_input = InputParser(ctx)
+                user = await parsed_input.user_mention_id(user)
+                if user is None:
+                    return
+
+        elif isinstance(ctx, SlashContext):
             if user is None:
-                return
+                user = ctx.author_id
+            else:
+                user = user.id
+                kwargs = {'hidden': True}
+
+        elif isinstance(ctx, MenuContext):
+            user = ctx.target_id
+            kwargs = {'hidden': True}
 
         user_pnw = await PnWNation.get_or_none(discord_user_id=user)
         if user_pnw is None:
-            await ctx.send("User with the given ID is not in the Database.")
+            await ctx.send("User with the given ID is not in the Database.", **kwargs)
             return
         else:
-            await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}")
+            await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}", **kwargs)
+
+    @commands.command(name="nation_link", aliases=['nl', 'nation'])
+    async def normal_nation_link(self, ctx, user='f'):
+        await self.generic_nation_link(ctx, user)
+
+    @cog_slash(name="nation_link",
+               description="Returns a user's nation if they are linked.",
+               guild_ids=guild_ids,
+               options=[
+                   create_option(
+                       name="user",
+                       description="The user to return a nation link from, yours if empty.",
+                       option_type=SlashCommandOptionType.USER,
+                       required=False
+                   )
+               ])
+    async def slash_nation_link(self, ctx: SlashContext, user=None):
+        await self.generic_nation_link(ctx, user)
 
     @cog_context_menu(target=ContextMenuType.USER, name="Nation Link", guild_ids=guild_ids)
-    async def nation_link(self, ctx: MenuContext):
-        user_pnw = await PnWNation.get_or_none(discord_user_id=ctx.target_id)
-        if user_pnw is None:
-            await ctx.send("User with the given ID is not in the Database.", hidden=True)
-            return
-        else:
-            await ctx.send(f"https://politicsandwar.com/nation/id={user_pnw.nation_id}", hidden=True)
+    async def context_nation_link(self, ctx: MenuContext):
+        await self.generic_nation_link(ctx)
 
     @commands.command(aliases=['du', 'au'])
     async def associated_user(self, ctx, nation_id="f"):
@@ -196,7 +224,6 @@ class Utils(commands.Cog):
                 msg += "None"
             mentions = discord.AllowedMentions(users=False)
             await ctx.send(msg, allowed_mentions=mentions)
-
 
     # @commands.command(aliases=['rp'])
     # async def report(self, ctx, reference):
