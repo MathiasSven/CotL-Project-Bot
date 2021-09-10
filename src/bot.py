@@ -70,7 +70,7 @@ class MyBot(commands.Bot):
         else:
             await super(MyBot, self).on_error(event, *args, **kwargs)
 
-    async def on_command_error(self, ctx, exception):
+    async def on_command_error(self, ctx: commands.Context, exception):
         if isinstance(exception, commands.errors.CommandError):
             if isinstance(exception, commands.errors.MissingRole):
                 await ctx.send("You don't have the role necessary to run this command.")
@@ -82,7 +82,11 @@ class MyBot(commands.Bot):
                 print(f"ERROR -- {exception} -- ERROR")
             else:
                 if self.IT_LOGS_CHANNEL_ID != 0:
-                    await self.IT_LOGS_CHANNEL.send(content=exception)
+                    await self.IT_LOGS_CHANNEL.send(content=f'__**CommandError**__\n'
+                                                            f'Command: {ctx.command.name}\n'
+                                                            f'Caller: {ctx.author}\n'
+                                                            f'Channel: {getattr(ctx.channel, "mention", "Private")}\n'
+                                                            f'Exception: **{exception}**')
                 raise exception
         else:
             if self.IT_LOGS_CHANNEL_ID != 0:
